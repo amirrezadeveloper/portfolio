@@ -1,0 +1,54 @@
+<section id="stats" class="section">
+    <div class="container">
+        <div class="section-title reveal">
+            <h2>Statistics</h2>
+            <p>Key metrics and achievements throughout my career</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="glass-card stat-card reveal">
+                <div class="stat-number" id="yearsCounter">0</div>
+                <h4>Years of Experience</h4>
+                <p style="color: var(--text-muted);">Building enterprise applications</p>
+            </div>
+            
+            <div class="glass-card stat-card reveal">
+                <div class="stat-number" id="projectsCounter">0</div>
+                <h4>Projects Delivered</h4>
+                <p style="color: var(--text-muted);">Successful implementations</p>
+            </div>
+            
+            <div class="glass-card stat-card reveal">
+                <div class="stat-number" id="techCounter">0</div>
+                <h4>Technologies Mastered</h4>
+                <p style="color: var(--text-muted);">Modern stack expertise</p>
+            </div>
+            
+            <div class="glass-card stat-card reveal">
+                <div class="stat-number" id="contributionsCounter">0</div>
+                <h4>GitHub Contributions</h4>
+                <p style="color: var(--text-muted);">Open source & personal projects</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    private int yearsExperience = 8;
+    private int projectsDelivered = 50;
+    private int technologiesMastered = 25;
+    private int githubContributions = 1200;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("animateCounter", "yearsCounter", yearsExperience, 2000);
+            await JSRuntime.InvokeVoidAsync("animateCounter", "projectsCounter", projectsDelivered, 2000);
+            await JSRuntime.InvokeVoidAsync("animateCounter", "techCounter", technologiesMastered, 2000);
+            await JSRuntime.InvokeVoidAsync("animateCounter", "contributionsCounter", githubContributions, 2000);
+        }
+    }
+
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+}

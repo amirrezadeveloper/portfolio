@@ -1,0 +1,189 @@
+<section id="architecture" class="section">
+    <div class="container">
+        <div class="section-title reveal">
+            <h2>System Architecture</h2>
+            <p>Modern microservices architecture design patterns and implementations</p>
+        </div>
+        
+        <div class="glass-card reveal" style="padding: var(--spacing-lg);">
+            <div class="architecture-diagram">
+                <div class="architecture-layer">
+                    <div class="layer-title">API Gateway</div>
+                    <div class="service-node" style="background: linear-gradient(135deg, #3B82F6, #06B6D4);">
+                        <div class="node-icon">🚪</div>
+                        <div class="node-label">Gateway</div>
+                    </div>
+                </div>
+                
+                <div class="architecture-connections">
+                    <div class="connection-line"></div>
+                </div>
+                
+                <div class="architecture-layer" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-md);">
+                    <div class="service-node">
+                        <div class="node-icon">👤</div>
+                        <div class="node-label">Identity</div>
+                    </div>
+                    <div class="service-node">
+                        <div class="node-icon">🔌</div>
+                        <div class="node-label">External Providers</div>
+                    </div>
+                    <div class="service-node">
+                        <div class="node-icon">📋</div>
+                        <div class="node-label">Claims</div>
+                    </div>
+                </div>
+                
+                <div class="architecture-connections">
+                    <div class="connection-line"></div>
+                </div>
+                
+                <div class="architecture-layer" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-md);">
+                    <div class="service-node">
+                        <div class="node-icon">⚖️</div>
+                        <div class="node-label">Policies</div>
+                    </div>
+                    <div class="service-node">
+                        <div class="node-icon">🎉</div>
+                        <div class="node-label">Party</div>
+                    </div>
+                </div>
+                
+                <div class="architecture-connections">
+                    <div class="connection-line"></div>
+                </div>
+                
+                <div class="architecture-layer" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-md);">
+                    <div class="service-node">
+                        <div class="node-icon">💰</div>
+                        <div class="node-label">Financial</div>
+                    </div>
+                    <div class="service-node">
+                        <div class="node-icon">🐇</div>
+                        <div class="node-label">RabbitMQ</div>
+                    </div>
+                </div>
+                
+                <div class="architecture-connections">
+                    <div class="connection-line"></div>
+                </div>
+                
+                <div class="architecture-layer" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-md);">
+                    <div class="service-node">
+                        <div class="node-icon">🚀</div>
+                        <div class="node-label">Redis</div>
+                    </div>
+                    <div class="service-node">
+                        <div class="node-icon">💾</div>
+                        <div class="node-label">SQL Server</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: var(--spacing-lg); padding-top: var(--spacing-md); border-top: 1px solid var(--border-color);">
+                <h3 style="margin-bottom: var(--spacing-sm);">Architecture Highlights</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-md);">
+                    <div>
+                        <h4 style="color: var(--primary-color); margin-bottom: var(--spacing-xs);">Event-Driven</h4>
+                        <p style="color: var(--text-secondary); font-size: var(--font-size-sm);">Asynchronous communication between services using message brokers</p>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--primary-color); margin-bottom: var(--spacing-xs);">CQRS Pattern</h4>
+                        <p style="color: var(--text-secondary); font-size: var(--font-size-sm);">Separate read and write models for optimal performance</p>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--primary-color); margin-bottom: var(--spacing-xs);">Clean Architecture</h4>
+                        <p style="color: var(--text-secondary); font-size: var(--font-size-sm);">Dependency inversion and separation of concerns</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .architecture-diagram {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-lg);
+    }
+
+    .architecture-layer {
+        width: 100%;
+    }
+
+    .layer-title {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: var(--font-size-sm);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .service-node {
+        background: var(--background-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
+        text-align: center;
+        transition: all var(--transition-base);
+        animation: pulse 2s infinite;
+    }
+
+    .service-node:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+
+    .node-icon {
+        font-size: 2rem;
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .node-label {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .architecture-connections {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .connection-line {
+        width: 2px;
+        height: 40px;
+        background: linear-gradient(to bottom, var(--primary-color), var(--accent-color));
+        position: relative;
+    }
+
+    .connection-line::before,
+    .connection-line::after {
+        content: '';
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .connection-line::before {
+        top: -4px;
+    }
+
+    .connection-line::after {
+        bottom: -4px;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+        }
+        50% {
+            box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+        }
+    }
+</style>

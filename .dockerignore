@@ -1,0 +1,11 @@
+bin/
+obj/
+.git/
+.vs/
+.idea/
+.vercel/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+README.md
