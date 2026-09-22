@@ -1,10 +1,15 @@
 @inherits LayoutComponentBase
+@inject NavigationManager Navigation
 
-<PageTitle>Amirreza Ghahremani | Backend Engineer &amp; .NET Developer</PageTitle>
+<PageTitle>@(IsPersian ? "امیررضا قهرمانی | توسعه‌دهندهٔ بک‌اند و دات‌نت" : "Amirreza Ghahremani | Backend Engineer & .NET Developer")</PageTitle>
 
-<a class="skip-link" href="#main-content">Skip to content</a>
+<a class="skip-link" href="@(IsPersian ? "/fa#main-content" : "/#main-content")">@(IsPersian ? "رفتن به محتوای اصلی" : "Skip to content")</a>
 <Navbar />
 <main id="main-content">
     @Body
 </main>
 <Footer />
+
+@code {
+    private bool IsPersian => new Uri(Navigation.Uri).AbsolutePath.Equals("/fa", StringComparison.OrdinalIgnoreCase);
+}

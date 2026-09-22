@@ -1,24 +1,30 @@
+@inject NavigationManager Navigation
+
 <section id="home" class="hero" aria-labelledby="hero-heading">
     <div class="container hero-grid">
         <div class="hero-copy">
-            <div class="eyebrow"><span class="eyebrow-line"></span> BACKEND ENGINEER / .NET DEVELOPER</div>
-            <h1 id="hero-heading">Building the systems <span>behind the experience.</span></h1>
-            <p class="hero-lead">I'm Amirreza Ghahremani. I design and build reliable backend services for complex insurance workflows, from microservices and APIs to the infrastructure that keeps them running.</p>
+            <div class="eyebrow"><span class="eyebrow-line"></span> @(IsPersian ? "توسعه‌دهندهٔ بک‌اند و دات‌نت" : "BACKEND ENGINEER / .NET DEVELOPER")</div>
+            <h1 id="hero-heading">@(IsPersian ? "ساخت سامانه‌هایی که" : "Building the systems") <span>@(IsPersian ? "می‌شود به آن‌ها اعتماد کرد." : "behind the experience.")</span></h1>
+            <p class="hero-lead">@(IsPersian ? "من امیررضا قهرمانی‌ام؛ توسعه‌دهندهٔ بک‌اند با تمرکز بر سامانه‌های بیمه‌ای. با دات‌نت، API و معماری میکروسرویسی راهکارهایی می‌سازم که در فرایندهای پیچیده، پایدار و قابل نگه‌داری باشند." : "I'm Amirreza Ghahremani. I design and build reliable backend services for complex insurance workflows, from microservices and APIs to the infrastructure that keeps them running.")</p>
             <div class="hero-actions">
-                <a class="btn btn-primary" href="#projects">Explore my work <span aria-hidden="true">↗</span></a>
-                <a class="btn btn-ghost" href="mailto:amirrezaghahremani@gmail.com">Get in touch <span aria-hidden="true">→</span></a>
+                <a class="btn btn-primary" href="@(IsPersian ? "/fa#projects" : "/#projects")">@(IsPersian ? "مشاهدهٔ پروژه‌ها" : "Explore my work") <span aria-hidden="true">↗</span></a>
+                <a class="btn btn-ghost" href="mailto:amirrezaghahremani@gmail.com">@(IsPersian ? "در تماس باشیم" : "Get in touch") <span aria-hidden="true">→</span></a>
             </div>
-            <div class="hero-meta" aria-label="Professional details">
-                <span><span class="meta-dot" aria-hidden="true"></span> Novin Insurance · 2023–present</span>
-                <span>Based in Tehran, Iran</span>
+            <div class="hero-meta" aria-label="@(IsPersian ? "اطلاعات حرفه‌ای" : "Professional details")">
+                <span><span class="meta-dot" aria-hidden="true"></span> @(IsPersian ? "بیمه نوین · از ۲۰۲۳ تاکنون" : "Novin Insurance · 2023–present")</span>
+                <span>@(IsPersian ? "تهران، ایران" : "Based in Tehran, Iran")</span>
             </div>
         </div>
         <div class="hero-visual">
             <div class="portrait-frame">
-                <img src="profile.jpg" alt="Portrait of Amirreza Ghahremani" width="640" height="640" fetchpriority="high" />
+                <img src="profile.jpg" alt="@(IsPersian ? "پرتره امیررضا قهرمانی" : "Portrait of Amirreza Ghahremani")" width="640" height="640" fetchpriority="high" />
             </div>
-            <div class="portrait-caption"><span>01 / PROFILE</span><strong>Engineering for real-world complexity.</strong></div>
+            <div class="portrait-caption"><span>@(IsPersian ? "۰۱ / معرفی" : "01 / PROFILE")</span><strong>@(IsPersian ? "راهکارهای فنی برای مسائل واقعی." : "Engineering for real-world complexity.")</strong></div>
             <div class="visual-orbit" aria-hidden="true"></div>
         </div>
     </div>
 </section>
+
+@code {
+    private bool IsPersian => new Uri(Navigation.Uri).AbsolutePath.Equals("/fa", StringComparison.OrdinalIgnoreCase);
+}

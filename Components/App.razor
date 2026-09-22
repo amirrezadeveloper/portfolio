@@ -1,23 +1,29 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+@inject NavigationManager Navigation
+
+<html lang="@(IsPersian ? "fa" : "en")" dir="@(IsPersian ? "rtl" : "ltr")">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Amirreza Ghahremani is a Backend Engineer and .NET Developer building enterprise insurance systems, microservices, and reliable APIs." />
     <meta name="theme-color" content="#08111a" />
     <base href="/" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preload" href="/fonts/Vazirmatn-variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="app.css" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <HeadOutlet />
 </head>
 
-<body>
+<body class="@(IsPersian ? "persian" : null)">
     <Routes />
     <script src="animations.js"></script>
 </body>
 
 </html>
+
+@code {
+    private bool IsPersian => new Uri(Navigation.Uri).AbsolutePath.Equals("/fa", StringComparison.OrdinalIgnoreCase);
+}

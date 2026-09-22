@@ -1,17 +1,23 @@
+@inject NavigationManager Navigation
+
 <section id="about" class="section section-muted" aria-labelledby="about-title">
     <div class="container about-grid">
         <div class="section-intro reveal">
-            <span class="section-kicker">01 / ABOUT</span>
-            <h2 id="about-title">Thoughtful architecture.<br /><span>Practical delivery.</span></h2>
+            <span class="section-kicker">@(IsPersian ? "۰۱ / دربارهٔ من" : "01 / ABOUT")</span>
+            <h2 id="about-title">@(IsPersian ? "معماری دقیق." : "Thoughtful architecture.")<br /><span>@(IsPersian ? "اجرای قابل اتکا." : "Practical delivery.")</span></h2>
         </div>
         <div class="about-body reveal">
-            <p class="about-lead">I'm a backend engineer with 3+ years of experience developing enterprise insurance systems with .NET and microservices.</p>
-            <p>At Novin Insurance, I designed and built a motor claims platform from the ground up: service architecture, claim workflows, integrations, authentication, messaging, observability, and development infrastructure. I also work on policy issuance and enterprise portals where dependable business processes matter.</p>
+            <p class="about-lead">@(IsPersian ? "بیش از سه سال در توسعهٔ سامانه‌های سازمانی بیمه با دات‌نت و معماری میکروسرویسی تجربه دارم." : "I'm a backend engineer with 3+ years of experience developing enterprise insurance systems with .NET and microservices.")</p>
+            <p>@(IsPersian ? "در بیمه نوین، پلتفرم رسیدگی به خسارت خودرو را از پایه طراحی و توسعه داده‌ام؛ از معماری سرویس‌ها و فرایندهای خسارت تا اتصال به سامانه‌های بیرونی، امنیت، پیام‌رسانی و پایش. در پروژه‌های صدور بیمه‌نامه و پورتال‌های سازمانی نیز فعالیت داشته‌ام." : "At Novin Insurance, I designed and built a motor claims platform from the ground up: service architecture, claim workflows, integrations, authentication, messaging, observability, and development infrastructure. I also work on policy issuance and enterprise portals where dependable business processes matter.")</p>
             <div class="about-highlights">
-                <div><span>01</span><strong>System design</strong><small>Clean Architecture, CQRS, distributed services</small></div>
-                <div><span>02</span><strong>Delivery</strong><small>APIs, data, integrations, production support</small></div>
-                <div><span>03</span><strong>Reliability</strong><small>Security, logging, monitoring, debugging</small></div>
+                <div><span>@(IsPersian ? "۰۱" : "01")</span><strong>@(IsPersian ? "طراحی معماری" : "System design")</strong><small>@(IsPersian ? "معماری پاک، CQRS و سرویس‌های توزیع‌شده" : "Clean Architecture, CQRS, distributed services")</small></div>
+                <div><span>@(IsPersian ? "۰۲" : "02")</span><strong>@(IsPersian ? "پیاده‌سازی" : "Delivery")</strong><small>@(IsPersian ? "API، داده، یکپارچه‌سازی و پشتیبانی سامانه" : "APIs, data, integrations, production support")</small></div>
+                <div><span>@(IsPersian ? "۰۳" : "03")</span><strong>@(IsPersian ? "پایداری سامانه" : "Reliability")</strong><small>@(IsPersian ? "امنیت، ثبت رویداد، پایش و عیب‌یابی" : "Security, logging, monitoring, debugging")</small></div>
             </div>
         </div>
     </div>
 </section>
+
+@code {
+    private bool IsPersian => new Uri(Navigation.Uri).AbsolutePath.Equals("/fa", StringComparison.OrdinalIgnoreCase);
+}

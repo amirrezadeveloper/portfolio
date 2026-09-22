@@ -1,4 +1,22 @@
 @page "/"
+@page "/fa"
+@inject NavigationManager Navigation
+
+<PageTitle>@(IsPersian ? "امیررضا قهرمانی | توسعه‌دهندهٔ بک‌اند و دات‌نت" : "Amirreza Ghahremani | Backend Engineer & .NET Developer")</PageTitle>
+<HeadContent>
+    <meta name="description" content="@(IsPersian ? "امیررضا قهرمانی، توسعه‌دهندهٔ بک‌اند و دات‌نت با تجربه در طراحی API، میکروسرویس‌ها و سامانه‌های سازمانی بیمه." : "Amirreza Ghahremani is a Backend Engineer and .NET Developer building enterprise insurance systems, microservices, and reliable APIs.")" />
+    <link rel="canonical" href="@CanonicalUrl" />
+    <link rel="alternate" hreflang="en" href="@EnglishUrl" />
+    <link rel="alternate" hreflang="fa" href="@PersianUrl" />
+    <link rel="alternate" hreflang="x-default" href="@EnglishUrl" />
+    <meta property="og:type" content="profile" />
+    <meta property="og:title" content="@(IsPersian ? "امیررضا قهرمانی | توسعه‌دهندهٔ بک‌اند و دات‌نت" : "Amirreza Ghahremani | Backend Engineer & .NET Developer")" />
+    <meta property="og:description" content="@(IsPersian ? "طراحی و توسعهٔ APIها، میکروسرویس‌ها و سامانه‌های سازمانی بیمه." : "Backend Engineer and .NET Developer specializing in microservices and enterprise systems.")" />
+    <meta property="og:url" content="@CanonicalUrl" />
+    <meta property="og:image" content="@($"{SiteUrl}/profile.jpg")" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">@((MarkupString)$"{{\"@context\":\"https://schema.org\",\"@type\":\"Person\",\"name\":\"Amirreza Ghahremani\",\"alternateName\":\"امیررضا قهرمانی\",\"url\":\"{EnglishUrl}\",\"image\":\"{SiteUrl}/profile.jpg\",\"jobTitle\":\"Backend Engineer and .NET Developer\",\"address\":{{\"@type\":\"PostalAddress\",\"addressLocality\":\"Tehran\",\"addressCountry\":\"IR\"}},\"sameAs\":[\"https://github.com/amirrezadeveloper\",\"https://www.linkedin.com/in/amirrezaghahremani\",\"https://www.instagram.com/amirreza0/\",\"https://t.me/amirrezadeveloper\"]}}")</script>
+</HeadContent>
 
 <HeroSection />
 <AboutSection />
@@ -7,3 +25,11 @@
 <SkillsSection />
 <EducationSection />
 <ContactSection />
+
+@code {
+    private bool IsPersian => new Uri(Navigation.Uri).AbsolutePath.Equals("/fa", StringComparison.OrdinalIgnoreCase);
+    private string SiteUrl => Navigation.BaseUri.TrimEnd('/');
+    private string EnglishUrl => SiteUrl + "/";
+    private string PersianUrl => SiteUrl + "/fa";
+    private string CanonicalUrl => IsPersian ? PersianUrl : EnglishUrl;
+}

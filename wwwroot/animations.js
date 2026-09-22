@@ -13,7 +13,7 @@
         function closeMenu(returnFocus = false) {
             panel.classList.remove('is-open');
             toggle.setAttribute('aria-expanded', 'false');
-            toggle.setAttribute('aria-label', 'Open navigation menu');
+            toggle.setAttribute('aria-label', toggle.dataset.openLabel || 'Open navigation menu');
             if (returnFocus) toggle.focus();
         }
 
@@ -21,7 +21,7 @@
             const opening = toggle.getAttribute('aria-expanded') !== 'true';
             panel.classList.toggle('is-open', opening);
             toggle.setAttribute('aria-expanded', String(opening));
-            toggle.setAttribute('aria-label', opening ? 'Close navigation menu' : 'Open navigation menu');
+            toggle.setAttribute('aria-label', opening ? (toggle.dataset.closeLabel || 'Close navigation menu') : (toggle.dataset.openLabel || 'Open navigation menu'));
         }
 
         function onDocumentClick(event) {
@@ -49,7 +49,7 @@
                 current = sections.at(-1)?.id || current;
             }
             links.forEach(link => {
-                const active = link.getAttribute('href') === '#' + current;
+                const active = new URL(link.href, window.location.origin).hash === '#' + current;
                 link.classList.toggle('active', active);
                 if (active) link.setAttribute('aria-current', 'location');
                 else link.removeAttribute('aria-current');

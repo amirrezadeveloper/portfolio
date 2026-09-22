@@ -1,11 +1,19 @@
+@inject NavigationManager Navigation
+
 <section id="contact" class="section contact-section" aria-labelledby="contact-title">
     <div class="container contact-layout">
-        <div class="reveal"><span class="section-kicker">06 / CONTACT</span><h2 id="contact-title">Let's build something <span>that lasts.</span></h2><p>Have a backend engineering opportunity or a complex system to discuss? I'd be glad to connect.</p><a class="btn btn-primary" href="mailto:amirrezaghahremani@gmail.com">Send an email <span aria-hidden="true">↗</span></a></div>
+        <div class="reveal"><span class="section-kicker">@(IsPersian ? "۰۶ / تماس" : "06 / CONTACT")</span><h2 id="contact-title">@(IsPersian ? "بیایید دربارهٔ" : "Let's build something") <span>@(IsPersian ? "همکاری صحبت کنیم." : "that lasts.")</span></h2><p>@(IsPersian ? "اگر فرصت شغلی در حوزهٔ بک‌اند دارید یا می‌خواهید دربارهٔ یک پروژهٔ فنی گفت‌وگو کنیم، خوشحال می‌شوم پیام بدهید." : "Have a backend engineering opportunity or a complex system to discuss? I'd be glad to connect.")</p><a class="btn btn-primary" href="mailto:amirrezaghahremani@gmail.com">@(IsPersian ? "ارسال ایمیل" : "Send an email") <span aria-hidden="true">↗</span></a></div>
         <div class="contact-links reveal">
-            <a href="mailto:amirrezaghahremani@gmail.com"><span>Email</span><strong>amirrezaghahremani@gmail.com</strong><span aria-hidden="true">↗</span></a>
-            <a href="tel:+989102305286"><span>Phone</span><strong>+98 910 230 5286</strong><span aria-hidden="true">↗</span></a>
-            <a href="https://github.com/amirrezadeveloper" target="_blank" rel="noopener noreferrer"><span>GitHub</span><strong>amirrezadeveloper</strong><span aria-hidden="true">↗</span></a>
-            <a href="https://www.linkedin.com/in/amirrezaghahremani" target="_blank" rel="noopener noreferrer"><span>LinkedIn</span><strong>amirrezaghahremani</strong><span aria-hidden="true">↗</span></a>
+            <a href="mailto:amirrezaghahremani@gmail.com"><span>@(IsPersian ? "ایمیل" : "Email")</span><strong dir="ltr">amirrezaghahremani@gmail.com</strong><span aria-hidden="true">↗</span></a>
+            <a href="tel:+989102305286"><span>@(IsPersian ? "تلفن" : "Phone")</span><strong dir="ltr">+98 910 230 5286</strong><span aria-hidden="true">↗</span></a>
+            <a href="https://github.com/amirrezadeveloper" target="_blank" rel="noopener noreferrer"><span>GitHub</span><strong dir="ltr">amirrezadeveloper</strong><span aria-hidden="true">↗</span></a>
+            <a href="https://www.linkedin.com/in/amirrezaghahremani" target="_blank" rel="noopener noreferrer"><span>LinkedIn</span><strong dir="ltr">amirrezaghahremani</strong><span aria-hidden="true">↗</span></a>
+            <a href="https://www.instagram.com/amirreza0/" target="_blank" rel="me noopener noreferrer"><span>Instagram</span><strong dir="ltr">amirreza0</strong><span aria-hidden="true">↗</span></a>
+            <a href="https://t.me/amirrezadeveloper" target="_blank" rel="me noopener noreferrer"><span>Telegram</span><strong dir="ltr">amirrezadeveloper</strong><span aria-hidden="true">↗</span></a>
         </div>
     </div>
 </section>
+
+@code {
+    private bool IsPersian => new Uri(Navigation.Uri).AbsolutePath.Equals("/fa", StringComparison.OrdinalIgnoreCase);
+}

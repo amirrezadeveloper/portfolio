@@ -1,22 +1,30 @@
+@inject NavigationManager Navigation
+
 <header class="site-header" id="site-header">
-    <nav class="nav-shell container" aria-label="Main navigation">
-        <a class="brand" href="#home" aria-label="Amirreza Ghahremani, back to top">
+    <nav class="nav-shell container" aria-label="@(IsPersian ? "ناوبری اصلی" : "Main navigation")">
+        <a class="brand" href="@SectionHref("home")" aria-label="@(IsPersian ? "امیررضا قهرمانی، بازگشت به ابتدا" : "Amirreza Ghahremani, back to top")">
             <span class="brand-mark" aria-hidden="true">AG<span>.</span></span>
-            <span class="brand-name">Amirreza Ghahremani</span>
+            <span class="brand-name">@(IsPersian ? "امیررضا قهرمانی" : "Amirreza Ghahremani")</span>
         </a>
-        <button class="menu-toggle" type="button" aria-label="Open navigation menu" aria-controls="site-menu" aria-expanded="false">
+        <button class="menu-toggle" type="button" aria-label="@(IsPersian ? "باز کردن منوی ناوبری" : "Open navigation menu")" data-open-label="@(IsPersian ? "باز کردن منوی ناوبری" : "Open navigation menu")" data-close-label="@(IsPersian ? "بستن منوی ناوبری" : "Close navigation menu")" aria-controls="site-menu" aria-expanded="false">
             <span></span><span></span><span></span>
         </button>
         <div class="nav-panel" id="site-menu">
             <ul class="nav-links">
-                <li><a href="#home" class="nav-link active" aria-current="location">Home</a></li>
-                <li><a href="#about" class="nav-link">About</a></li>
-                <li><a href="#experience" class="nav-link">Experience</a></li>
-                <li><a href="#projects" class="nav-link">Projects</a></li>
-                <li><a href="#skills" class="nav-link">Skills</a></li>
-                <li><a href="#education" class="nav-link">Education</a></li>
+                <li><a href="@SectionHref("home")" class="nav-link active" aria-current="location">@(IsPersian ? "خانه" : "Home")</a></li>
+                <li><a href="@SectionHref("about")" class="nav-link">@(IsPersian ? "دربارهٔ من" : "About")</a></li>
+                <li><a href="@SectionHref("experience")" class="nav-link">@(IsPersian ? "تجربهٔ کاری" : "Experience")</a></li>
+                <li><a href="@SectionHref("projects")" class="nav-link">@(IsPersian ? "پروژه‌ها" : "Projects")</a></li>
+                <li><a href="@SectionHref("skills")" class="nav-link">@(IsPersian ? "مهارت‌ها" : "Skills")</a></li>
+                <li><a href="@SectionHref("education")" class="nav-link">@(IsPersian ? "تحصیلات" : "Education")</a></li>
             </ul>
-            <a href="#contact" class="nav-contact">Let's talk <span aria-hidden="true">↗</span></a>
+            <a href="@(IsPersian ? "/" : "/fa")" data-enhance="false" class="language-switch" lang="@(IsPersian ? "en" : "fa")">@(IsPersian ? "English" : "فارسی")</a>
+            <a href="@SectionHref("contact")" class="nav-contact">@(IsPersian ? "در تماس باشیم" : "Let's talk") <span aria-hidden="true">↗</span></a>
         </div>
     </nav>
 </header>
+
+@code {
+    private bool IsPersian => new Uri(Navigation.Uri).AbsolutePath.Equals("/fa", StringComparison.OrdinalIgnoreCase);
+    private string SectionHref(string section) => $"{(IsPersian ? "/fa" : "/")}#{section}";
+}
