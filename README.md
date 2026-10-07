@@ -41,8 +41,11 @@ Supabase setup applied three remote migrations: `create_portfolio_blog`, `stream
 ```powershell
 dotnet build portfolio.csproj
 dotnet run --project tests/BlogFlowChecks/BlogFlowChecks.csproj
+dotnet run --project tests/BlogFlowChecks/BlogFlowChecks.csproj -- --production-proxy
 ```
 
 The flow checker starts an isolated Supabase HTTP double and the real site on ports 5192/5193. It tests login, non-admin rejection, antiforgery, draft visibility, preview, publish, archive, duplicate slugs, language isolation, Markdown safety, upstream failures, and revoked admin membership. It never writes test articles to the connected cloud database. Supabase RLS was also checked with rollback-only SQL transactions.
+
+The production proxy check reproduces HTTPS termination followed by a private HTTP hop. Forwarded headers run before HTTPS redirection, authentication, and antiforgery so secure cookies and authentication redirects use the original HTTPS scheme. `Dockerfile.vercel` explicitly enables `ReverseProxy__TrustPlatformHeaders` for Vercel's managed ingress; do not enable this setting for a server directly reachable by arbitrary clients. Other hosts use ASP.NET's default trusted loopback proxy configuration unless configured otherwise.
 
 Real account login must be checked with your password in the browser; do not send it in chat. The current Supabase security advisor reports a warning that leaked-password protection is disabled; review availability under [Password security](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).

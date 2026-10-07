@@ -6,7 +6,8 @@ using portfolio.Blog;
 
 // Exercises the real ASP.NET pages against an isolated HTTP double, never the user's database.
 var json = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
-var fakeBuilder = WebApplication.CreateBuilder(args);
+var productionProxy = args.Contains("--production-proxy");
+var fakeBuilder = WebApplication.CreateBuilder(Array.Empty<string>());
 fakeBuilder.Logging.ClearProviders();
 fakeBuilder.WebHost.UseUrls("http://127.0.0.1:5192");
 var fake = fakeBuilder.Build();
@@ -44,7 +45,12 @@ await fake.StartAsync();
 var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
 var start = new ProcessStartInfo("dotnet") { WorkingDirectory = root, UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };
 start.ArgumentList.Add(Path.Combine(root, "bin/Debug/net10.0/portfolio.dll"));
-start.Environment["ASPNETCORE_ENVIRONMENT"] = "Development";
+start.Environment["ASPNETCORE_ENVIRONMENT"] = productionProxy ? "Production" : "Development";
+if (productionProxy)
+{
+    start.Environment["DataProtection__KeyPath"] = Path.Combine(root, ".local", "production-proxy-test-keys");
+    start.Environment["ReverseProxy__TrustPlatformHeaders"] = "true";
+}
 start.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:5193";
 start.Environment.Remove("PORT");
 start.Environment["Supabase__Url"] = "http://127.0.0.1:5192";
@@ -62,7 +68,26 @@ async Task<HttpResponseMessage> Submit(string url, string html, Dictionary<strin
 Dictionary<string, string> Article(string slug, string action) => new() { ["Input.Title"] = "A test article", ["Input.Slug"] = slug, ["Input.Language"] = "en", ["Input.Excerpt"] = "An isolated fixture", ["Input.ContentMarkdown"] = "## Hello\n\n```csharp\nvar value = 42;\n```\n\n<script>alert(1)</script>\n\n[bad](javascript:alert)\n\n[docs](https://learn.microsoft.com)", ["Input.TagsText"] = ".NET, API", ["action"] = action };
 try
 {
+    if (productionProxy) client.DefaultRequestHeaders.Add("X-Forwarded-Proto", "https");
     for (var i = 0; i < 40; i++) { try { await client.GetAsync("/admin/login"); break; } catch (HttpRequestException) { await Task.Delay(250); } }
+    if (productionProxy)
+    {
+        var response = await client.GetAsync("/admin/login?ReturnUrl=%2Fadmin");
+        var body = await response.Content.ReadAsStringAsync();
+        Check(response.StatusCode == HttpStatusCode.OK && body.Contains("name=\"Email\""), "production login renders behind HTTPS-terminating proxy");
+        var cookies = response.Headers.GetValues("Set-Cookie").ToArray();
+        Check(cookies.Any(c => c.Contains("secure", StringComparison.OrdinalIgnoreCase) && c.Contains("httponly", StringComparison.OrdinalIgnoreCase)), "production antiforgery cookie remains Secure and HttpOnly");
+        // Simulate the browser's HTTPS cookies forwarded over the private HTTP hop.
+        client.DefaultRequestHeaders.Add("Cookie", string.Join("; ", cookies.Select(c => c.Split(';')[0])));
+        var missing = await client.PostAsync("/admin/login", new FormUrlEncodedContent(new Dictionary<string, string> { ["Email"] = "admin@example.test", ["Password"] = "wrong" }));
+        Check(missing.StatusCode == HttpStatusCode.BadRequest, "production login still rejects missing antiforgery token");
+        var submitted = await Submit("/admin/login", body, new() { ["Email"] = "admin@example.test", ["Password"] = "wrong" });
+        Check(submitted.StatusCode == HttpStatusCode.OK && (await submitted.Content.ReadAsStringAsync()).Contains("validation-summary-errors"), "production form validates antiforgery across proxy and handles login failure");
+        var redirect = await client.GetAsync("/admin");
+        Check(redirect.StatusCode == HttpStatusCode.Redirect && redirect.Headers.Location?.Scheme == "https", "production authentication redirect preserves HTTPS");
+        Console.WriteLine($"{checks} production proxy checks passed.");
+        return;
+    }
     var blocked = await client.GetAsync("/admin/posts");
     Check(blocked.StatusCode == HttpStatusCode.Redirect && blocked.Headers.Location?.OriginalString.Contains("/admin/login") == true, "anonymous editor redirects to login");
     var loginHtml = await client.GetStringAsync("/admin/login");
@@ -111,5 +136,5 @@ try
     Check(!auto.Contains("href=\"javascript:") && !auto.Contains("href=\"data:") && auto.Contains("href=\"https://example.com\""), "markdown autolinks reject executable URI schemes");
     Console.WriteLine($"{checks} checks passed.");
 }
-catch { lock (logs) Console.Error.WriteLine(string.Join(Environment.NewLine, logs.TakeLast(25))); throw; }
+catch (Exception error) { lock (logs) Console.Error.WriteLine(string.Join(Environment.NewLine, logs.TakeLast(35))); Console.Error.WriteLine(error.Message); Environment.ExitCode = 1; }
 finally { if (!server.HasExited) server.Kill(true); await fake.StopAsync(); }

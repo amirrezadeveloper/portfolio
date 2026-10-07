@@ -10,5 +10,8 @@ RUN dotnet publish "portfolio.csproj" -c Release -o /app/publish /p:UseAppHost=f
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
+# Public ingress is Vercel's proxy; Kestrel receives its private HTTP connection.
+ENV ReverseProxy__TrustPlatformHeaders=true
+
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "portfolio.dll"]
