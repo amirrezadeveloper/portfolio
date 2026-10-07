@@ -5,3 +5,10 @@
 **/obj
 .env*
 appsettings.Local.json
+.idea/
+.vercel/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+README.md
