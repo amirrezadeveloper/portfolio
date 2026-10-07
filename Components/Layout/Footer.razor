@@ -3,5 +3,5 @@
 <footer class="footer"><div class="container footer-inner"><span>© @DateTime.Now.Year @(IsPersian ? "امیررضا قهرمانی" : "Amirreza Ghahremani")</span><span>@(IsPersian ? "توسعه‌دهندهٔ بک‌اند · تهران، ایران" : "Backend Engineer · Tehran, Iran")</span><a href="@(IsPersian ? "/fa#home" : "/#home")">@(IsPersian ? "بازگشت به بالا ↑" : "Back to top ↑")</a></div></footer>
 
 @code {
-    private bool IsPersian => new Uri(Navigation.Uri).AbsolutePath.Equals("/fa", StringComparison.OrdinalIgnoreCase);
+    private bool IsPersian => new Uri(Navigation.Uri).AbsolutePath.Equals("/fa", StringComparison.OrdinalIgnoreCase) || new Uri(Navigation.Uri).AbsolutePath.StartsWith("/fa/", StringComparison.OrdinalIgnoreCase);
 }

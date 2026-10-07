@@ -1,0 +1,8 @@
+@page "/admin/login"
+@model portfolio.Pages.Admin.LoginModel
+@{ ViewData["Title"] = "ورود مدیر"; }
+<div class="admin-login admin-panel"><span class="section-kicker">مدیریت مقاله‌ها</span><h1>ورود به مدیریت</h1><p>برای نوشتن و مدیریت مقاله‌ها، با حساب مدیر وارد شو.</p>
+<form method="post"><div asp-validation-summary="All" class="form-error" role="alert"></div>
+<label asp-for="Email">ایمیل</label><input asp-for="Email" type="email" autocomplete="username" dir="ltr" required maxlength="254" />
+<label asp-for="Password">رمز عبور</label><input asp-for="Password" type="password" autocomplete="current-password" required maxlength="1024" />
+<button class="btn btn-primary" type="submit">ورود</button></form></div>

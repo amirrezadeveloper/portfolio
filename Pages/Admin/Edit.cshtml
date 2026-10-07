@@ -1,0 +1,22 @@
+@page "/admin/posts/{id:guid?}"
+@model portfolio.Pages.Admin.EditModel
+@{ ViewData["Title"] = Model.Id == null ? "مقالهٔ جدید" : "ویرایش مقاله"; }
+<a class="blog-back" href="/admin">→ بازگشت به مقاله‌ها</a>
+<div class="admin-title"><div><h1>@ViewData["Title"]</h1><p>پیش‌نویس‌ها فقط در پنل دیده می‌شوند. با انتشار، مقاله در بلاگ نمایش داده می‌شود.</p></div></div>
+<form method="post" class="editor-form" data-editor-id="@(Model.Id?.ToString() ?? "new")">
+<div asp-validation-summary="All" class="form-error" role="alert"></div>
+<div class="local-draft-notice" hidden><span>از این نوشته یک نسخه در مرورگر ذخیره شده است.</span><button type="button" class="btn btn-ghost" data-restore-draft>بازیابی</button><button type="button" class="btn btn-ghost" data-discard-draft>نادیده گرفتن</button></div>
+<div class="editor-grid"><div class="admin-panel editor-main">
+<label asp-for="Input.Title">عنوان مقاله</label><input asp-for="Input.Title" maxlength="250" required />
+<label asp-for="Input.Excerpt">خلاصهٔ مقاله</label><textarea asp-for="Input.Excerpt" rows="3" maxlength="2000"></textarea>
+<label asp-for="Input.ContentMarkdown">متن مقاله</label><p class="field-help">می‌توانی متن ساده بنویسی یا با Markdown قالب‌بندی‌اش کنی. برای تیتر، ## را ابتدای خط بگذار و برای نمایش کد، آن را بین دو خطِ سه‌بک‌تیکی قرار بده.</p><textarea asp-for="Input.ContentMarkdown" class="markdown-input" rows="22" maxlength="100000" required dir="@(Model.Input.Language == "en" ? "ltr" : "rtl")"></textarea>
+<div class="editor-toolbar"><button class="btn btn-ghost" type="submit" asp-page-handler="Preview">پیش‌نمایش</button><span class="field-help" data-draft-status>هنگام نوشتن، یک نسخهٔ موقت در مرورگر ذخیره می‌شود.</span></div>
+</div><aside class="admin-panel editor-sidebar">
+<label asp-for="Input.Language">زبان مقاله</label><select asp-for="Input.Language"><option value="fa">فارسی</option><option value="en">English</option></select>
+<label asp-for="Input.Slug">آدرس مقاله</label><input asp-for="Input.Slug" dir="ltr" placeholder="my-first-dotnet-post" maxlength="160" pattern="[a-z0-9]+(-[a-z0-9]+)*" required /><p class="field-help">از حروف کوچک انگلیسی، عدد و خط تیره استفاده کن. این آدرس نباید برای مقالهٔ دیگری به همین زبان استفاده شده باشد.</p>
+<label asp-for="Input.TagsText">برچسب‌ها</label><input asp-for="Input.TagsText" maxlength="1000" placeholder=".NET, معماری, API" /><p class="field-help">برچسب‌ها را با ویرگول جدا کن؛ حداکثر ۲۰ برچسب.</p>
+<div class="editor-save"><button class="btn btn-primary" type="submit" asp-page-handler="Save" name="action" value="publish">انتشار مقاله</button><button class="btn btn-ghost" type="submit" asp-page-handler="Save" name="action" value="draft">ذخیرهٔ پیش‌نویس</button>@if (Model.Id != null) { <button class="btn btn-ghost" type="submit" asp-page-handler="Save" name="action" value="archive">انتقال به آرشیو</button> }</div>
+<p class="field-help">پس از حداکثر یک ساعت باید دوباره وارد شوی. بعد از ورود، می‌توانی نسخهٔ ذخیره‌شده در مرورگر را بازیابی کنی.</p>
+</aside></div>
+</form>
+@if (Model.PreviewHtml != null) { <section class="admin-panel editor-preview"><span class="section-kicker">پیش‌نمایش · هنوز ذخیره نشده</span><article dir="@(Model.Input.Language == "en" ? "ltr" : "rtl")"><h1>@Model.Input.Title</h1><p>@Model.Input.Excerpt</p><div class="article-body">@Html.Raw(Model.PreviewHtml)</div></article></section> }

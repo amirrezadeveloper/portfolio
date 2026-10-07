@@ -26,5 +26,5 @@
 </html>
 
 @code {
-    private bool IsPersian => new Uri(Navigation.Uri).AbsolutePath.Equals("/fa", StringComparison.OrdinalIgnoreCase);
+    private bool IsPersian => new Uri(Navigation.Uri).AbsolutePath.Equals("/fa", StringComparison.OrdinalIgnoreCase) || new Uri(Navigation.Uri).AbsolutePath.StartsWith("/fa/", StringComparison.OrdinalIgnoreCase);
 }

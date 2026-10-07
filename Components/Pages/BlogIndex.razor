@@ -1,0 +1,50 @@
+@page "/blog"
+@page "/fa/blog"
+@inject BlogClient Blog
+@inject NavigationManager Navigation
+@inject IHttpContextAccessor Context
+
+<PageTitle>@(IsPersian ? "بلاگ | امیررضا قهرمانی" : "Blog | Amirreza Ghahremani")</PageTitle>
+<HeadContent><meta name="description" content="@(IsPersian ? "یادداشت‌ها و تجربه‌های من از کار با دات‌نت و توسعهٔ بک‌اند." : "Notes on .NET, backend development, and software engineering.")" /><link rel="canonical" href="@(Navigation.BaseUri.TrimEnd('/') + BasePath)" /></HeadContent>
+<section class="blog-page container">
+    <div class="blog-heading"><span class="section-kicker">@(IsPersian ? "یادداشت‌ها و تجربه‌ها" : "NOTES & EXPERIENCES")</span>
+    <h1>@(IsPersian ? "پشت صحنهٔ کد" : "Behind the code")</h1>
+    <p>@(IsPersian ? "از تجربه‌های کار با دات‌نت و بک‌اند می‌نویسم؛ از مسئله‌هایی که با آن‌ها روبه‌رو می‌شوم و راه‌حل‌هایی که پیدا می‌کنم." : ".NET, backend engineering, and things I learn along the way.")</p></div>
+    @if (Failed)
+    {
+        <div class="blog-empty" role="alert"><h2>@(IsPersian ? "مقاله‌ها بارگذاری نشدند" : "Articles are temporarily unavailable")</h2><p>@(IsPersian ? "لطفاً کمی بعد دوباره سر بزنید." : "Please try again shortly.")</p><a href="@BasePath" class="btn btn-ghost">@(IsPersian ? "تلاش دوباره" : "Try again")</a></div>
+    }
+    else if (Posts.Count == 0)
+    {
+        <div class="blog-empty"><span class="blog-empty-mark" aria-hidden="true">{ }</span><h2>@(IsPersian ? "هنوز مقاله‌ای منتشر نکرده‌ام" : "The first note is on its way")</h2><p>@(IsPersian ? "این‌جا قرار است دربارهٔ تجربه‌های کاری و آموخته‌های فنی‌ام بنویسم." : "I'll share my technical notes and experiences here soon.")</p></div>
+    }
+    else
+    {
+        <div class="blog-grid">
+            @foreach (var post in Posts.Take(12))
+            {
+                <article class="blog-card"><div class="blog-meta"><time datetime="@post.PublishedAt?.ToString("O")">@post.DateLabel</time><span>@post.ReadingMinutes @(IsPersian ? "دقیقه مطالعه" : "min read")</span></div><h2><a href="@post.Url">@post.Title</a></h2><p>@post.Excerpt</p><div class="tag-list">@foreach (var tag in post.Tags) { <span>@tag</span> }</div><a class="blog-read" href="@post.Url">@(IsPersian ? "خواندن مقاله ←" : "Read article →")</a></article>
+            }
+        </div>
+    }
+    <nav class="blog-pagination" aria-label="@(IsPersian ? "صفحه‌بندی" : "Pagination")">
+        @if (PageNumber > 1) { <a class="btn btn-ghost" href="@(BasePath + "?page=" + (PageNumber - 1))">@(IsPersian ? "صفحهٔ قبل" : "Previous")</a> }
+        @if (Posts.Count > 12) { <a class="btn btn-ghost" href="@(BasePath + "?page=" + (PageNumber + 1))">@(IsPersian ? "صفحهٔ بعد" : "Next")</a> }
+    </nav>
+</section>
+
+@code {
+    [SupplyParameterFromQuery(Name = "page")] public int? Page { get; set; }
+    private int PageNumber => Math.Clamp(Page ?? 1, 1, 10000);
+    private bool IsPersian => new Uri(Navigation.Uri).AbsolutePath.StartsWith("/fa/", StringComparison.OrdinalIgnoreCase);
+    private string BasePath => IsPersian ? "/fa/blog" : "/blog";
+    private List<BlogPost> Posts = [];
+    private bool Failed;
+    protected override async Task OnParametersSetAsync()
+    {
+        Failed = false;
+        try { Posts = await Blog.ListPublishedAsync(IsPersian ? "fa" : "en", PageNumber); }
+        catch (Exception e) when (e is BlogApiException or HttpRequestException or TaskCanceledException)
+        { Failed = true; if (Context.HttpContext != null) Context.HttpContext.Response.StatusCode = 503; }
+    }
+}

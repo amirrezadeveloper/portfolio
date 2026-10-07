@@ -1,0 +1,9 @@
+@page "/admin"
+@model portfolio.Pages.Admin.IndexModel
+@{ ViewData["Title"] = "مقاله‌ها"; }
+<div class="admin-title"><div><span class="section-kicker">بلاگ شخصی</span><h1>مقاله‌ها</h1><p>مقالهٔ تازه بنویس یا نوشته‌های قبلی را ویرایش و منتشر کن.</p></div><div class="admin-actions"><a class="btn btn-primary" href="/admin/posts">+ مقالهٔ جدید</a><form method="post" asp-page-handler="Logout"><button class="btn btn-ghost" type="submit">خروج</button></form></div></div>
+@if (Request.Query["saved"] == "1") { <div class="form-success" role="status">مقاله ذخیره شد.</div> }
+@if (Model.Failed) { <div class="form-error" role="alert">مقاله‌ها بارگذاری نشدند. <a href="/admin">تلاش دوباره</a></div> }
+else if (Model.Posts.Count == 0) { <div class="blog-empty admin-panel"><h2>اولین مقاله‌ات را بنویس</h2><p>برای شروع، از یکی از مسئله‌هایی بنویس که در کارت حل کرده‌ای.</p><a class="btn btn-primary" href="/admin/posts">شروع نوشتن</a></div> }
+else { <div class="admin-post-list">@foreach (var post in Model.Posts.Take(20)) { <article class="admin-post admin-panel"><div><span class="status-badge status-@post.Status">@(post.Status == "published" ? "منتشرشده" : post.Status == "archived" ? "آرشیو" : "پیش‌نویس")</span><span class="blog-meta">@(post.Language == "fa" ? "فارسی" : "English") · @post.UpdatedAt.ToString("yyyy/MM/dd")</span><h2><a href="/admin/posts/@post.Id">@post.Title</a></h2><p>@post.Excerpt</p></div><div class="admin-actions"><a class="btn btn-ghost" href="/admin/posts/@post.Id">ویرایش</a>@if (post.Status == "published") { <a href="@post.Url" target="_blank" rel="noopener">مشاهده ↗</a> }</div></article> }</div> }
+<nav class="blog-pagination">@if (Model.PageNumber > 1) { <a class="btn btn-ghost" href="/admin?page=@(Model.PageNumber - 1)">صفحهٔ قبل</a> }@if (Model.Posts.Count > 20) { <a class="btn btn-ghost" href="/admin?page=@(Model.PageNumber + 1)">صفحهٔ بعد</a> }</nav>

@@ -17,14 +17,17 @@
                 <li><a href="@SectionHref("projects")" class="nav-link">@(IsPersian ? "پروژه‌ها" : "Projects")</a></li>
                 <li><a href="@SectionHref("skills")" class="nav-link">@(IsPersian ? "مهارت‌ها" : "Skills")</a></li>
                 <li><a href="@SectionHref("education")" class="nav-link">@(IsPersian ? "تحصیلات" : "Education")</a></li>
+                <li><a href="@(IsPersian ? "/fa/blog" : "/blog")" class="nav-link">@(IsPersian ? "بلاگ" : "Blog")</a></li>
             </ul>
-            <a href="@(IsPersian ? "/" : "/fa")" data-enhance="false" class="language-switch" lang="@(IsPersian ? "en" : "fa")">@(IsPersian ? "English" : "فارسی")</a>
-            <a href="@SectionHref("contact")" class="nav-contact">@(IsPersian ? "در تماس باشیم" : "Let's talk") <span aria-hidden="true">↗</span></a>
+            <a href="@LanguageHref" data-enhance="false" class="language-switch" lang="@(IsPersian ? "en" : "fa")">@(IsPersian ? "English" : "فارسی")</a>
+            <a href="@SectionHref("contact")" class="nav-contact">@(IsPersian ? "تماس با من" : "Let's talk") <span aria-hidden="true">↗</span></a>
         </div>
     </nav>
 </header>
 
 @code {
-    private bool IsPersian => new Uri(Navigation.Uri).AbsolutePath.Equals("/fa", StringComparison.OrdinalIgnoreCase);
+    private string CurrentPath => new Uri(Navigation.Uri).AbsolutePath;
+    private bool IsPersian => CurrentPath.Equals("/fa", StringComparison.OrdinalIgnoreCase) || CurrentPath.StartsWith("/fa/", StringComparison.OrdinalIgnoreCase);
+    private string LanguageHref => CurrentPath.Contains("/blog", StringComparison.OrdinalIgnoreCase) ? (IsPersian ? "/blog" : "/fa/blog") : (IsPersian ? "/" : "/fa");
     private string SectionHref(string section) => $"{(IsPersian ? "/fa" : "/")}#{section}";
 }

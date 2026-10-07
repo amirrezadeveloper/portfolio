@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Local authentication keys and private environment overrides
+.local/
+.env*
+appsettings.Local.json

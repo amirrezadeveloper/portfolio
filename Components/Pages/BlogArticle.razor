@@ -1,0 +1,37 @@
+@page "/blog/{Slug}"
+@page "/fa/blog/{Slug}"
+@inject BlogClient Blog
+@inject NavigationManager Navigation
+@inject IHttpContextAccessor Context
+
+<section class="blog-page container article-shell">
+    <a class="blog-back" href="@(IsPersian ? "/fa/blog" : "/blog")">@(IsPersian ? "→ همهٔ مقاله‌ها" : "← All articles")</a>
+    @if (Post != null)
+    {
+        <PageTitle>@Post.Title | @(IsPersian ? "امیررضا قهرمانی" : "Amirreza Ghahremani")</PageTitle>
+        <HeadContent><meta name="description" content="@Post.Excerpt" /><link rel="canonical" href="@Canonical" /><meta property="og:type" content="article" /><meta property="og:title" content="@Post.Title" /><meta property="og:description" content="@Post.Excerpt" /><meta property="og:url" content="@Canonical" /><meta property="article:published_time" content="@Post.PublishedAt?.ToString("O")" /><meta name="twitter:card" content="summary" /></HeadContent>
+        <article><header class="article-heading"><div class="blog-meta"><time datetime="@Post.PublishedAt?.ToString("O")">@Post.DateLabel</time><span>@Post.ReadingMinutes @(IsPersian ? "دقیقه مطالعه" : "min read")</span></div><h1>@Post.Title</h1><p>@Post.Excerpt</p><div class="tag-list">@foreach (var tag in Post.Tags) { <span>@tag</span> }</div></header><div class="article-body">@((MarkupString)ArticleMarkdown.Render(Post.ContentMarkdown))</div></article>
+        <div class="article-contact"><p>@(IsPersian ? "اگر دربارهٔ این مطلب پرسشی دارید یا می‌خواهید دربارهٔ همکاری صحبت کنیم، پیام بدهید." : "Have a question or a project in mind?")</p><a class="btn btn-ghost" href="@(IsPersian ? "/fa#contact" : "/#contact")">@(IsPersian ? "تماس با من" : "Let's talk")</a></div>
+    }
+    else
+    {
+        <PageTitle>@(Failed ? "Blog unavailable" : "Article not found")</PageTitle>
+        <div class="blog-empty"><h1>@(Failed ? (IsPersian ? "مقاله بارگذاری نشد" : "Article temporarily unavailable") : (IsPersian ? "مقاله پیدا نشد" : "Article not found"))</h1><p>@(IsPersian ? "برای دیدن نوشته‌های دیگر، به صفحهٔ بلاگ برگردید." : "Visit the blog to browse published articles.")</p></div>
+    }
+</section>
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+    private bool IsPersian => new Uri(Navigation.Uri).AbsolutePath.StartsWith("/fa/", StringComparison.OrdinalIgnoreCase);
+    private string Canonical => Navigation.BaseUri.TrimEnd('/') + Post?.Url;
+    private BlogPost? Post;
+    private bool Failed;
+    protected override async Task OnParametersSetAsync()
+    {
+        Failed = false;
+        Post = null;
+        try { Post = await Blog.GetPublishedAsync(IsPersian ? "fa" : "en", Slug); }
+        catch (Exception e) when (e is BlogApiException or HttpRequestException or TaskCanceledException) { Failed = true; }
+        if (Post == null && Context.HttpContext != null) Context.HttpContext.Response.StatusCode = Failed ? 503 : 404;
+    }
+}

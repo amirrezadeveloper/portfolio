@@ -49,7 +49,8 @@
                 current = sections.at(-1)?.id || current;
             }
             links.forEach(link => {
-                const active = new URL(link.href, window.location.origin).hash === '#' + current;
+                const target = new URL(link.href, window.location.origin);
+                const active = sections.length ? target.pathname === window.location.pathname && target.hash === '#' + current : !target.hash && (window.location.pathname === target.pathname || window.location.pathname.startsWith(target.pathname + '/'));
                 link.classList.toggle('active', active);
                 if (active) link.setAttribute('aria-current', 'location');
                 else link.removeAttribute('aria-current');
