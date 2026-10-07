@@ -7,11 +7,18 @@ RUN dotnet restore "portfolio.csproj"
 COPY . .
 RUN dotnet publish "portfolio.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
+# Generate a private key ring once per image, shared by every runtime replica.
+# No key material is stored in Git or exposed through wwwroot.
+RUN ASPNETCORE_ENVIRONMENT=Production DataProtection__KeyPath=/app/data-protection-keys dotnet /app/publish/portfolio.dll --initialize-data-protection
+
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 # Public ingress is Vercel's proxy; Kestrel receives its private HTTP connection.
 ENV ReverseProxy__TrustPlatformHeaders=true
+ENV DataProtection__KeyPath=/app/data-protection-keys
+ENV DataProtection__ReadOnlyKeys=true
 
 COPY --from=build /app/publish .
+COPY --from=build /app/data-protection-keys /app/data-protection-keys
 ENTRYPOINT ["dotnet", "portfolio.dll"]

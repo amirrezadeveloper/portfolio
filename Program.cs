@@ -6,7 +6,8 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 
-var builder = WebApplication.CreateBuilder(args);
+var initializeDataProtection = args.Contains("--initialize-data-protection");
+var builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--initialize-data-protection").ToArray());
 
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))
@@ -37,7 +38,10 @@ if (builder.Environment.IsDevelopment())
     protection.PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, ".local", "keys")));
 else if (builder.Configuration["DataProtection:KeyPath"] is { Length: > 0 } keyPath)
     protection.PersistKeysToFileSystem(new DirectoryInfo(keyPath));
-builder.Services.AddRazorPages(options => options.Conventions.AuthorizeFolder("/Admin"));
+if (builder.Configuration.GetValue<bool>("DataProtection:ReadOnlyKeys") && !initializeDataProtection)
+    protection.DisableAutomaticKeyGeneration();
+builder.Services.AddRazorPages(options => options.Conventions.AuthorizeFolder("/Admin"))
+    .AddMvcOptions(options => options.Filters.Add<ExpiredLoginFormFilter>());
 builder.Services.AddHttpContextAccessor();
 builder.Services.Configure<SupabaseOptions>(builder.Configuration.GetSection("Supabase"));
 builder.Services.AddHttpClient<BlogClient>(client => client.Timeout = TimeSpan.FromSeconds(15));
@@ -64,6 +68,15 @@ builder.Services.AddRateLimiter(options =>
 });
 
 var app = builder.Build();
+if (initializeDataProtection)
+{
+    if (string.IsNullOrWhiteSpace(builder.Configuration["DataProtection:KeyPath"]))
+        throw new InvalidOperationException("Set DataProtection:KeyPath before initializing the private key ring.");
+    // Called once while building the private container image. Never emit key material.
+    app.Services.GetRequiredService<IDataProtectionProvider>()
+        .CreateProtector("portfolio-key-initialization").Protect("initialize");
+    return;
+}
 app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.

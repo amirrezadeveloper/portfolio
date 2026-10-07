@@ -16,7 +16,13 @@ public sealed class LoginModel(BlogClient blog) : PageModel
     [BindProperty, Required, EmailAddress, StringLength(254)] public string Email { get; set; } = "";
     [BindProperty, Required, StringLength(1024)] public string Password { get; set; } = "";
 
-    public IActionResult OnGet() => User.Identity?.IsAuthenticated == true ? LocalRedirect("/admin") : Page();
+    public IActionResult OnGet()
+    {
+        if (User.Identity?.IsAuthenticated == true) return LocalRedirect("/admin");
+        if (Request.Query["expired"] == "1")
+            ModelState.AddModelError("", "اعتبار فرم قبلی تمام شده است. لطفاً دوباره وارد شو.");
+        return Page();
+    }
 
     public async Task<IActionResult> OnPostAsync()
     {

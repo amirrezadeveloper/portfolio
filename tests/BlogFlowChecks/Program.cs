@@ -6,7 +6,8 @@ using portfolio.Blog;
 
 // Exercises the real ASP.NET pages against an isolated HTTP double, never the user's database.
 var json = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
-var productionProxy = args.Contains("--production-proxy");
+var sharedKeys = args.Contains("--shared-keys");
+var productionProxy = sharedKeys || args.Contains("--production-proxy");
 var fakeBuilder = WebApplication.CreateBuilder(Array.Empty<string>());
 fakeBuilder.Logging.ClearProviders();
 fakeBuilder.WebHost.UseUrls("http://127.0.0.1:5192");
@@ -48,13 +49,28 @@ start.ArgumentList.Add(Path.Combine(root, "bin/Debug/net10.0/portfolio.dll"));
 start.Environment["ASPNETCORE_ENVIRONMENT"] = productionProxy ? "Production" : "Development";
 if (productionProxy)
 {
-    start.Environment["DataProtection__KeyPath"] = Path.Combine(root, ".local", "production-proxy-test-keys");
+    start.Environment["DataProtection__KeyPath"] = Path.Combine(root, ".local", sharedKeys ? "shared-key-test-" + Guid.NewGuid().ToString("N") : "production-proxy-test-keys");
     start.Environment["ReverseProxy__TrustPlatformHeaders"] = "true";
 }
 start.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:5193";
 start.Environment.Remove("PORT");
 start.Environment["Supabase__Url"] = "http://127.0.0.1:5192";
 start.Environment["Supabase__PublishableKey"] = "test-publishable";
+if (sharedKeys)
+{
+    start.Environment["DataProtection__ReadOnlyKeys"] = "true";
+    var initialize = new ProcessStartInfo("dotnet") { WorkingDirectory = root, UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };
+    initialize.ArgumentList.Add(start.ArgumentList[0]);
+    initialize.ArgumentList.Add("--initialize-data-protection");
+    initialize.Environment["ASPNETCORE_ENVIRONMENT"] = "Production";
+    initialize.Environment["DataProtection__KeyPath"] = start.Environment["DataProtection__KeyPath"];
+    using var keyInitializer = Process.Start(initialize)!;
+    var initOutput = keyInitializer.StandardOutput.ReadToEndAsync();
+    var initErrors = keyInitializer.StandardError.ReadToEndAsync();
+    await keyInitializer.WaitForExitAsync();
+    await Task.WhenAll(initOutput, initErrors);
+    if (keyInitializer.ExitCode != 0) throw new Exception("Private image key initialization failed.");
+}
 using var server = Process.Start(start)!;
 var logs = new List<string>();
 server.OutputDataReceived += (_, e) => { if (e.Data != null) lock (logs) logs.Add(e.Data); };
@@ -85,6 +101,43 @@ try
         Check(submitted.StatusCode == HttpStatusCode.OK && (await submitted.Content.ReadAsStringAsync()).Contains("validation-summary-errors"), "production form validates antiforgery across proxy and handles login failure");
         var redirect = await client.GetAsync("/admin");
         Check(redirect.StatusCode == HttpStatusCode.Redirect && redirect.Headers.Location?.Scheme == "https", "production authentication redirect preserves HTTPS");
+        var stale = await Submit("/admin/login", "<input name=\"__RequestVerificationToken\" value=\"stale-token\">", new() { ["Email"] = "admin@example.test", ["Password"] = "valid" });
+        Check(stale.StatusCode == HttpStatusCode.Redirect && stale.Headers.Location?.OriginalString == "/admin/login?expired=1", "expired form is rejected with a fresh-login redirect");
+        var refreshed = await client.GetStringAsync("/admin/login?expired=1");
+        Check(WebUtility.HtmlDecode(refreshed).Contains("اعتبار فرم قبلی تمام شده"), "expired form recovery explains why another sign-in is needed");
+        if (sharedKeys)
+        {
+            start.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:5194";
+            using var second = Process.Start(start)!;
+            second.BeginOutputReadLine(); second.BeginErrorReadLine();
+            using var other = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { BaseAddress = new("http://127.0.0.1:5194") };
+            other.DefaultRequestHeaders.Add("X-Forwarded-Proto", "https");
+            var cookieHeader = string.Join("; ", cookies.Select(c => c.Split(';')[0]));
+            other.DefaultRequestHeaders.Add("Cookie", cookieHeader);
+            try
+            {
+                for (var i = 0; i < 40; i++) { try { await other.GetAsync("/admin/login"); break; } catch (HttpRequestException) { await Task.Delay(250); } }
+                var across = await other.PostAsync("/admin/login", new FormUrlEncodedContent(new Dictionary<string, string> { ["Email"] = "admin@example.test", ["Password"] = "wrong", ["__RequestVerificationToken"] = Anti(body) }));
+                Check(across.StatusCode == HttpStatusCode.OK, "form from one production replica validates on another replica");
+                var signedIn = await other.PostAsync("/admin/login", new FormUrlEncodedContent(new Dictionary<string, string> { ["Email"] = "admin@example.test", ["Password"] = "valid", ["__RequestVerificationToken"] = Anti(body) }));
+                Check(signedIn.StatusCode == HttpStatusCode.Redirect && signedIn.Headers.Location?.OriginalString == "/admin", "production admin fixture signs in on a different replica");
+                var authenticatedCookies = cookieHeader + "; " + string.Join("; ", signedIn.Headers.GetValues("Set-Cookie").Select(c => c.Split(';')[0]));
+                client.DefaultRequestHeaders.Remove("Cookie"); client.DefaultRequestHeaders.Add("Cookie", authenticatedCookies);
+                Check((await client.GetAsync("/admin")).StatusCode == HttpStatusCode.OK, "authentication cookie works on the original replica");
+                second.Kill(true); await second.WaitForExitAsync();
+                using var restarted = Process.Start(start)!;
+                restarted.BeginOutputReadLine(); restarted.BeginErrorReadLine();
+                other.DefaultRequestHeaders.Remove("Cookie"); other.DefaultRequestHeaders.Add("Cookie", authenticatedCookies);
+                try
+                {
+                    HttpResponseMessage? afterRestart = null;
+                    for (var i = 0; i < 40; i++) { try { afterRestart = await other.GetAsync("/admin"); break; } catch (HttpRequestException) { await Task.Delay(250); } }
+                    Check(afterRestart?.StatusCode == HttpStatusCode.OK, "authentication cookie survives a production replica cold start");
+                }
+                finally { if (!restarted.HasExited) restarted.Kill(true); }
+            }
+            finally { if (!second.HasExited) second.Kill(true); }
+        }
         Console.WriteLine($"{checks} production proxy checks passed.");
         return;
     }
