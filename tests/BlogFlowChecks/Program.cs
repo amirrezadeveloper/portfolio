@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using portfolio.Blog;
 
 // Exercises the real ASP.NET pages against an isolated HTTP double, never the user's database.
@@ -16,6 +17,7 @@ var posts = new List<BlogPost>();
 var adminId = Guid.NewGuid();
 var adminEnabled = true;
 var unavailable = false;
+var metadataUnavailable = false;
 fake.MapPost("/auth/v1/token", async (HttpRequest request) => {
     var input = await request.ReadFromJsonAsync<JsonElement>();
     return input.GetProperty("password").GetString() == "valid" ? Results.Json(new { access_token = input.GetProperty("email").GetString() == "admin@example.test" ? "admin-token" : "user-token", expires_in = 3600 }) : Results.StatusCode(400);
@@ -24,12 +26,23 @@ fake.MapGet("/auth/v1/user", (HttpRequest r) => Results.Json(new { id = r.Header
 fake.MapPost("/auth/v1/logout", () => Results.NoContent());
 fake.MapPost("/rest/v1/rpc/is_blog_admin", (HttpRequest r) => Results.Json(adminEnabled && r.Headers.Authorization == "Bearer admin-token"));
 fake.MapGet("/rest/v1/blog_posts", (HttpRequest r) => {
-    if (unavailable) return Results.StatusCode(503);
+    if (unavailable || metadataUnavailable && r.Query["select"] != "*") return Results.StatusCode(503);
     var filtered = posts.AsEnumerable();
     if (r.Headers.Authorization != "Bearer admin-token") filtered = filtered.Where(p => p.Status == "published");
     if (r.Query.TryGetValue("language", out var lang)) filtered = filtered.Where(p => "eq." + p.Language == lang);
     if (r.Query.TryGetValue("slug", out var slug)) filtered = filtered.Where(p => "eq." + p.Slug == slug);
     if (r.Query.TryGetValue("id", out var id)) filtered = filtered.Where(p => "eq." + p.Id == id);
+    if (r.Query.TryGetValue("status", out var state)) filtered = filtered.Where(p => "eq." + p.Status == state);
+    if (r.Query.TryGetValue("published_at", out var published))
+    {
+        var cutoff = DateTimeOffset.Parse(published.ToString()[4..], System.Globalization.CultureInfo.InvariantCulture);
+        filtered = filtered.Where(p => p.PublishedAt != null && p.PublishedAt <= cutoff);
+    }
+    filtered = filtered.OrderByDescending(p => p.PublishedAt).ThenByDescending(p => p.Id);
+    if (int.TryParse(r.Query["offset"], out var offset)) filtered = filtered.Skip(offset);
+    if (int.TryParse(r.Query["limit"], out var limit)) filtered = filtered.Take(limit);
+    if (r.Query["select"] != "*") return Results.Json(filtered.Select(p => new
+    { p.Id, p.Slug, p.Language, p.Title, p.Excerpt, p.Tags, p.Status, p.PublishedAt, p.UpdatedAt, p.CreatedAt }).ToList(), json);
     return Results.Json(filtered.ToList(), json);
 });
 fake.MapMethods("/rest/v1/blog_posts", ["POST", "PATCH"], async (HttpRequest r) => {
@@ -56,6 +69,8 @@ start.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:5193";
 start.Environment.Remove("PORT");
 start.Environment["Supabase__Url"] = "http://127.0.0.1:5192";
 start.Environment["Supabase__PublishableKey"] = "test-publishable";
+start.Environment["Seo__SiteUrl"] = "https://portfolio.example";
+start.Environment["Seo__GoogleSiteVerification"] = "verification-fixture";
 if (sharedKeys)
 {
     start.Environment["DataProtection__ReadOnlyKeys"] = "true";
@@ -172,6 +187,50 @@ try
     Check(!article.Contains("<script>alert") && !article.Contains("href=\"javascript:"), "article HTML and executable links disabled");
     Check((await client.GetAsync("/fa/blog/test-note")).StatusCode == HttpStatusCode.NotFound, "article language isolation");
     Check((await client.GetStringAsync("/blog")).Contains("A test article"), "published article appears in listing");
+    var publishedPost = posts.Single();
+    publishedPost.UpdatedAt = publishedPost.PublishedAt!.Value.AddDays(1);
+    var translated = new BlogPost { Id = Guid.NewGuid(), Slug = "test-note", Language = "fa", Title = "مقالهٔ آزمایشی", Excerpt = "متن فارسی", ContentMarkdown = "## فارسی", Status = "published", PublishedAt = DateTimeOffset.UtcNow.AddDays(-2), UpdatedAt = DateTimeOffset.UtcNow, Tags = ["API"] };
+    var related = new BlogPost { Id = Guid.NewGuid(), Slug = "related-note", Language = "en", Title = "Related architecture", Excerpt = "Related", Status = "published", PublishedAt = DateTimeOffset.UtcNow.AddDays(-3), UpdatedAt = DateTimeOffset.UtcNow, Tags = ["API"] };
+    var future = new BlogPost { Id = Guid.NewGuid(), Slug = "future-note", Language = "en", Title = "Scheduled", Status = "published", PublishedAt = DateTimeOffset.UtcNow.AddDays(2) };
+    var privateDraft = new BlogPost { Id = Guid.NewGuid(), Slug = "private-draft", Language = "fa", Title = "Private", Status = "draft" };
+    posts.AddRange([translated, related, future, privateDraft]);
+    var sitemap = XDocument.Parse(await client.GetStringAsync("/sitemap.xml"));
+    XNamespace sitemapNs = "http://www.sitemaps.org/schemas/sitemap/0.9";
+    XNamespace xhtml = "http://www.w3.org/1999/xhtml";
+    var urls = sitemap.Root!.Elements(sitemapNs + "url").ToArray();
+    Check(urls.Length == 7 && !sitemap.ToString().Contains("future-note") && !sitemap.ToString().Contains("private-draft"), "sitemap includes published pages and excludes drafts and scheduled posts");
+    var entry = urls.Single(x => x.Element(sitemapNs + "loc")!.Value == "https://portfolio.example/blog/test-note");
+    Check(entry.Elements(xhtml + "link").Count() == 3 && entry.Element(sitemapNs + "lastmod") != null, "sitemap carries reciprocal translations and actual modification dates");
+    article = await client.GetStringAsync("/blog/test-note");
+    Check(article.Contains("hreflang=\"fa\" href=\"https://portfolio.example/fa/blog/test-note\"") && article.Contains("href=\"/fa/blog/test-note\""), "article and language selector link to the published translation");
+    Check(article.Contains("href=\"/blog/related-note\"") && !article.Contains("href=\"/blog/future-note\""), "related articles are same-language published links");
+    var schemaText = Regex.Matches(article, "<script\\b([^>]*)>(.*?)</script>", RegexOptions.Singleline)
+        .Single(m => WebUtility.HtmlDecode(m.Groups[1].Value).Contains("application/ld+json")).Groups[2].Value;
+    using var schema = JsonDocument.Parse(schemaText);
+    var graph = schema.RootElement.GetProperty("@graph");
+    Check(graph[0].GetProperty("@type").GetString() == "BlogPosting" && graph[0].GetProperty("author").GetProperty("name").GetString() == "Amirreza Ghahremani", "article JSON-LD identifies the article and author");
+    Check(graph[1].GetProperty("itemListElement")[0].GetProperty("@type").GetString() == "ListItem" && article.Contains("rel=\"author\"") && article.Contains("Updated:"), "breadcrumbs and visible author/update metadata are rendered");
+    var missingTranslation = await client.GetStringAsync("/blog/related-note");
+    Check(!missingTranslation.Contains("hreflang=\"fa\""), "untranslated articles do not advertise nonexistent alternate pages");
+    metadataUnavailable = true;
+    Check((await client.GetAsync("/blog/test-note")).StatusCode == HttpStatusCode.OK && (await client.GetAsync("/sitemap.xml")).StatusCode == HttpStatusCode.ServiceUnavailable, "metadata outage preserves article readability and returns retryable sitemap failure");
+    metadataUnavailable = false;
+    var extra = Enumerable.Range(0, 205).Select(i => new BlogPost { Id = Guid.NewGuid(), Slug = "page-item-" + i, Language = "en", Title = "Paging " + i, Status = "published", PublishedAt = DateTimeOffset.UtcNow.AddDays(-10).AddMinutes(-i) }).ToArray();
+    posts.AddRange(extra);
+    Check(XDocument.Parse(await client.GetStringAsync("/sitemap.xml")).Root!.Elements(sitemapNs + "url").Count() == 212, "sitemap fetches metadata beyond the first API batch");
+    var pageTwo = await client.GetStringAsync("/blog?page=2");
+    Check(pageTwo.Contains("rel=\"canonical\" href=\"https://portfolio.example/blog?page=2\""), "paginated blog has its own canonical URL");
+    Check((await client.GetAsync("/blog?page=999")).StatusCode == HttpStatusCode.NotFound, "empty pagination does not create indexable success pages");
+    posts.RemoveAll(p => extra.Any(x => x.Id == p.Id));
+    translated.Status = "archived";
+    Check(!(await client.GetStringAsync("/blog/test-note")).Contains("hreflang=\"fa\""), "archiving a translation removes alternate links on the next request");
+    posts.RemoveAll(p => p.Id != publishedPost.Id);
+    var persianHome = await client.GetStringAsync("/fa");
+    Check(!persianHome.Contains("fonts.googleapis.com") && persianHome.Contains("google-site-verification\" content=\"verification-fixture\""), "Persian page avoids unused external font CSS and supports Search Console verification");
+    Check(persianHome.Contains("/app.css?v=") && persianHome.Contains("/animations.js?v="), "static asset URLs are content-versioned for safe caching");
+    var compressedRequest = new HttpRequestMessage(HttpMethod.Get, "/fa"); compressedRequest.Headers.AcceptEncoding.ParseAdd("br");
+    var compressed = await client.SendAsync(compressedRequest);
+    Check(compressed.Content.Headers.ContentEncoding.Contains("br"), "public HTML supports Brotli compression");
     var invalid = Article("INVALID slug", "publish");
     Check((await Submit("/admin/posts?handler=Save", editor, invalid)).StatusCode == HttpStatusCode.OK && posts.Count == 1, "invalid slug does not mutate data");
     var duplicate = await Submit("/admin/posts?handler=Save", editor, Article("test-note", "publish"));
@@ -187,6 +246,8 @@ try
     Check(!html.Contains("href=\"data:") && !html.Contains("href=\"javascript:") && !html.Contains("<iframe") && html.Contains("href=\"https://example.com\""), "markdown URI allowlist preserves valid web links");
     var auto = ArticleMarkdown.Render("<javascript:alert> <data:text/html,x> <https://example.com>");
     Check(!auto.Contains("href=\"javascript:") && !auto.Contains("href=\"data:") && auto.Contains("href=\"https://example.com\""), "markdown autolinks reject executable URI schemes");
+    var internalLinks = ArticleMarkdown.Render("[related](/blog/related-note) [unsafe](//evil.example) [encoded](/%2fevil.example)");
+    Check(internalLinks.Contains("href=\"/blog/related-note\"") && !internalLinks.Contains("href=\"//evil") && !internalLinks.Contains("href=\"/%2f"), "Markdown preserves internal links and rejects disguised external URLs");
     Console.WriteLine($"{checks} checks passed.");
 }
 catch (Exception error) { lock (logs) Console.Error.WriteLine(string.Join(Environment.NewLine, logs.TakeLast(35))); Console.Error.WriteLine(error.Message); Environment.ExitCode = 1; }

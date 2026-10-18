@@ -3,9 +3,18 @@
 @inject BlogClient Blog
 @inject NavigationManager Navigation
 @inject IHttpContextAccessor Context
+@inject SiteMetadata Site
 
 <PageTitle>@(IsPersian ? "بلاگ | امیررضا قهرمانی" : "Blog | Amirreza Ghahremani")</PageTitle>
-<HeadContent><meta name="description" content="@(IsPersian ? "یادداشت‌ها و تجربه‌های من از کار با دات‌نت و توسعهٔ بک‌اند." : "Notes on .NET, backend development, and software engineering.")" /><link rel="canonical" href="@(Navigation.BaseUri.TrimEnd('/') + BasePath)" /></HeadContent>
+<HeadContent>
+    <meta name="description" content="@(IsPersian ? "مقاله‌های امیررضا قهرمانی دربارهٔ دات‌نت، توسعهٔ بک‌اند، CQRS، Saga و معماری میکروسرویس؛ کاربردها، محدودیت‌ها و تصمیم‌های طراحی." : "Articles by Amirreza Ghahremani on .NET, backend development, CQRS, sagas, and microservice architecture: practical uses, trade-offs, and design decisions.")" />
+    <link rel="canonical" href="@Site.Url(SiteMetadata.BlogPath(IsPersian ? "fa" : "en", PageNumber))" />
+    @if (PageNumber == 1)
+    {
+        <link rel="alternate" hreflang="en" href="@Site.Url("/blog")" /><link rel="alternate" hreflang="fa" href="@Site.Url("/fa/blog")" /><link rel="alternate" hreflang="x-default" href="@Site.Url("/blog")" />
+    }
+    @if (PageNumber > 1 && Posts.Count == 0 && !Failed) { <meta name="robots" content="noindex,follow" /> }
+</HeadContent>
 <section class="blog-page container">
     <div class="blog-heading"><span class="section-kicker">@(IsPersian ? "یادداشت‌ها و تجربه‌ها" : "NOTES & EXPERIENCES")</span>
     <h1>@(IsPersian ? "پشت صحنهٔ کد" : "Behind the code")</h1>
@@ -46,5 +55,6 @@
         try { Posts = await Blog.ListPublishedAsync(IsPersian ? "fa" : "en", PageNumber); }
         catch (Exception e) when (e is BlogApiException or HttpRequestException or TaskCanceledException)
         { Failed = true; if (Context.HttpContext != null) Context.HttpContext.Response.StatusCode = 503; }
+        if (!Failed && PageNumber > 1 && Posts.Count == 0 && Context.HttpContext != null) Context.HttpContext.Response.StatusCode = 404;
     }
 }

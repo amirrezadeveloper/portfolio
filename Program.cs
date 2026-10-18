@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
+using portfolio.Seo;
+using Microsoft.AspNetCore.ResponseCompression;
+using System.IO.Compression;
 
 var initializeDataProtection = args.Contains("--initialize-data-protection");
 var builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--initialize-data-protection").ToArray());
@@ -43,6 +46,14 @@ if (builder.Configuration.GetValue<bool>("DataProtection:ReadOnlyKeys") && !init
 builder.Services.AddRazorPages(options => options.Conventions.AuthorizeFolder("/Admin"))
     .AddMvcOptions(options => options.Filters.Add<ExpiredLoginFormFilter>());
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddOptions<SeoOptions>().Bind(builder.Configuration.GetSection("Seo"))
+    .Validate(o => Uri.TryCreate(o.SiteUrl, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https"
+        && uri.AbsolutePath == "/" && string.IsNullOrEmpty(uri.Query) && string.IsNullOrEmpty(uri.Fragment), "Seo:SiteUrl must be an absolute site origin.")
+    .ValidateOnStart();
+builder.Services.AddSingleton<SiteMetadata>();
+builder.Services.AddScoped<PublishedPostCatalog>();
+builder.Services.AddResponseCompression(options => options.EnableForHttps = true);
+builder.Services.Configure<BrotliCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
 builder.Services.Configure<SupabaseOptions>(builder.Configuration.GetSection("Supabase"));
 builder.Services.AddHttpClient<BlogClient>(client => client.Timeout = TimeSpan.FromSeconds(15));
 builder.Services.AddScoped<BlogCookieEvents>();
@@ -89,7 +100,16 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
-app.UseStaticFiles();
+app.UseWhen(context => !context.Request.Path.StartsWithSegments("/admin"), branch => branch.UseResponseCompression());
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = context =>
+    {
+        // Versioned CSS/JS URLs can be cached; fonts change infrequently.
+        context.Context.Response.Headers.CacheControl = context.File.Name.EndsWith(".woff2")
+            ? "public,max-age=604800" : "public,max-age=3600";
+    }
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
@@ -106,33 +126,20 @@ app.Use(async (context, next) =>
 });
 app.UseAntiforgery();
 
-app.MapGet("/robots.txt", (HttpRequest request) =>
-    Results.Text($"User-agent: *\nAllow: /\nDisallow: /admin\nSitemap: {GetPublicOrigin(request)}/sitemap.xml\n", "text/plain"));
+app.MapGet("/robots.txt", (SiteMetadata site) =>
+    Results.Text($"User-agent: *\nAllow: /\nDisallow: /admin\nSitemap: {site.Url("/sitemap.xml")}\n", "text/plain"));
 
-app.MapGet("/sitemap.xml", (HttpRequest request) =>
+app.MapGet("/sitemap.xml", async (PublishedPostCatalog catalog, SiteMetadata site, HttpResponse response) =>
 {
-    var origin = GetPublicOrigin(request);
-    var sitemap = $"""
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>{origin}/</loc></url>
-  <url><loc>{origin}/fa</loc></url>
-  <url><loc>{origin}/blog</loc></url>
-  <url><loc>{origin}/fa/blog</loc></url>
-</urlset>
-""";
-
-    return Results.Text(sitemap, "application/xml");
+    try { return Results.Text(site.Sitemap(await catalog.GetAsync()), "application/xml", System.Text.Encoding.UTF8); }
+    catch (Exception e) when (e is BlogApiException or HttpRequestException or TaskCanceledException)
+    {
+        response.Headers.RetryAfter = "300";
+        return Results.StatusCode(503);
+    }
 });
 
 app.MapRazorComponents<App>();
 app.MapRazorPages();
 
 app.Run();
-
-static string GetPublicOrigin(HttpRequest request)
-{
-    var scheme = request.Headers["X-Forwarded-Proto"].FirstOrDefault() ?? request.Scheme;
-    var host = request.Headers["X-Forwarded-Host"].FirstOrDefault() ?? request.Host.Value;
-    return $"{scheme}://{host}";
-}

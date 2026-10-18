@@ -11,7 +11,7 @@ public sealed class BlogClient(HttpClient http, IOptions<SupabaseOptions> option
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
     public bool IsConfigured => Uri.TryCreate(options.Value.Url, UriKind.Absolute, out _) && !string.IsNullOrWhiteSpace(options.Value.PublishableKey);
 
-    private async Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, string? token = null, object? body = null, bool representation = false)
+    private async Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, string? token = null, object? body = null, bool representation = false, CancellationToken cancellationToken = default)
     {
         if (!IsConfigured) throw new BlogApiException(503);
         using var request = new HttpRequestMessage(method, options.Value.Url.TrimEnd('/') + path);
@@ -19,7 +19,7 @@ public sealed class BlogClient(HttpClient http, IOptions<SupabaseOptions> option
         if (token != null) request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         if (body != null) request.Content = JsonContent.Create(body, options: Json);
         if (representation) request.Headers.Add("Prefer", "return=representation");
-        var response = await http.SendAsync(request);
+        var response = await http.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
             var status = (int)response.StatusCode;
@@ -41,6 +41,25 @@ public sealed class BlogClient(HttpClient http, IOptions<SupabaseOptions> option
         var now = Uri.EscapeDataString(DateTimeOffset.UtcNow.ToString("O"));
         using var response = await SendAsync(HttpMethod.Get, $"/rest/v1/blog_posts?select=*&language=eq.{language}&slug=eq.{Uri.EscapeDataString(slug)}&status=eq.published&published_at=lte.{now}&limit=1");
         return (await response.Content.ReadFromJsonAsync<List<BlogPost>>(Json))?.FirstOrDefault();
+    }
+
+    public async Task<IReadOnlyList<BlogPost>> ListPublishedMetadataAsync()
+    {
+        const int batchSize = 200;
+        var published = new List<BlogPost>();
+        var now = DateTimeOffset.UtcNow;
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        for (var offset = 0; ; offset += batchSize)
+        {
+            var path = "/rest/v1/blog_posts?select=id,slug,language,title,excerpt,tags,status,published_at,updated_at,created_at"
+                + $"&status=eq.published&published_at=lte.{Uri.EscapeDataString(now.ToString("O"))}&order=published_at.desc,id.desc&limit={batchSize}&offset={offset}";
+            using var response = await SendAsync(HttpMethod.Get, path, cancellationToken: timeout.Token);
+            var batch = await response.Content.ReadFromJsonAsync<List<BlogPost>>(Json, timeout.Token) ?? [];
+            published.AddRange(batch.Where(p => p.Status == "published" && p.PublishedAt <= now && p.PublishedAt != null
+                && p.Language is "fa" or "en" && System.Text.RegularExpressions.Regex.IsMatch(p.Slug, "^[a-z0-9]+(-[a-z0-9]+)*$")));
+            if (batch.Count < batchSize) break;
+        }
+        return published;
     }
 
     public async Task<List<BlogPost>> ListAdminAsync(string token, int page = 1)

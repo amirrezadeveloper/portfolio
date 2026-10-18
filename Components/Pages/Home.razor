@@ -1,6 +1,7 @@
 @page "/"
 @page "/fa"
 @inject NavigationManager Navigation
+@inject SiteMetadata Site
 
 <PageTitle>@(IsPersian ? "امیررضا قهرمانی | توسعه‌دهندهٔ بک‌اند و دات‌نت" : "Amirreza Ghahremani | Backend Engineer & .NET Developer")</PageTitle>
 <HeadContent>
@@ -15,7 +16,7 @@
     <meta property="og:url" content="@CanonicalUrl" />
     <meta property="og:image" content="@($"{SiteUrl}/profile.jpg")" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">@((MarkupString)$"{{\"@context\":\"https://schema.org\",\"@type\":\"Person\",\"name\":\"Amirreza Ghahremani\",\"alternateName\":\"امیررضا قهرمانی\",\"url\":\"{EnglishUrl}\",\"image\":\"{SiteUrl}/profile.jpg\",\"jobTitle\":\"Backend Engineer and .NET Developer\",\"address\":{{\"@type\":\"PostalAddress\",\"addressLocality\":\"Tehran\",\"addressCountry\":\"IR\"}},\"sameAs\":[\"https://github.com/amirrezadeveloper\",\"https://www.linkedin.com/in/amirrezaghahremani\",\"https://www.instagram.com/amirreza0/\",\"https://t.me/amirrezadeveloper\"]}}")</script>
+    <script type="application/ld+json">@((MarkupString)PersonJson)</script>
 </HeadContent>
 
 <HeroSection />
@@ -24,12 +25,25 @@
 <ProjectsSection />
 <SkillsSection />
 <EducationSection />
+<section class="section section-muted" aria-labelledby="writing-title"><div class="container">
+    <div class="section-heading"><div><span class="section-kicker">@(IsPersian ? "یادداشت‌های فنی" : "TECHNICAL WRITING")</span><h2 id="writing-title">@(IsPersian ? "بک‌اند و تصمیم‌های معماری" : "Backend engineering and architecture")</h2></div></div>
+    <p>@(IsPersian ? "دربارهٔ کاربرد و محدودیت‌های CQRS، مدیریت فرایندها با Saga و Orchestration و هزینه‌های معماری میکروسرویس می‌نویسم." : "Notes on CQRS trade-offs, workflow coordination with sagas and orchestration, and the costs of microservice architecture.")</p>
+    <a class="btn btn-ghost writing-link" href="@(IsPersian ? "/fa/blog" : "/blog")">@(IsPersian ? "خواندن مقاله‌های فنی ←" : "Read the technical articles →")</a>
+</div></section>
 <ContactSection />
 
 @code {
     private bool IsPersian => new Uri(Navigation.Uri).AbsolutePath.Equals("/fa", StringComparison.OrdinalIgnoreCase);
-    private string SiteUrl => Navigation.BaseUri.TrimEnd('/');
+    private string SiteUrl => Site.Origin;
     private string EnglishUrl => SiteUrl + "/";
     private string PersianUrl => SiteUrl + "/fa";
     private string CanonicalUrl => IsPersian ? PersianUrl : EnglishUrl;
+    private string PersonJson => System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object?>
+    {
+        ["@context"] = "https://schema.org", ["@type"] = "Person", ["@id"] = Site.Url("/#person"),
+        ["name"] = SiteMetadata.AuthorName, ["alternateName"] = "امیررضا قهرمانی",
+        ["url"] = EnglishUrl, ["image"] = Site.Url("/profile.jpg"), ["jobTitle"] = "Backend Engineer and .NET Developer",
+        ["address"] = new Dictionary<string, string> { ["@type"] = "PostalAddress", ["addressLocality"] = "Tehran", ["addressCountry"] = "IR" },
+        ["sameAs"] = new[] { "https://github.com/amirrezadeveloper", "https://www.linkedin.com/in/amirrezaghahremani", "https://www.instagram.com/amirreza0/", "https://t.me/amirrezadeveloper" }
+    });
 }

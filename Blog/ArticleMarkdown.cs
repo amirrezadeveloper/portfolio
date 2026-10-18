@@ -13,8 +13,12 @@ public static class ArticleMarkdown
         var document = Markdown.Parse(markdown, Pipeline);
         foreach (var link in document.Descendants<LinkInline>())
         {
-            // Only web links and images are allowed. Raw HTML and executable URI schemes are disabled.
-            if (!Uri.TryCreate(link.Url, UriKind.Absolute, out var uri) || uri.Scheme is not ("https" or "http"))
+            // Permit root-relative internal links without enabling protocol-relative or executable URLs.
+            var url = link.Url ?? "";
+            var decoded = Uri.UnescapeDataString(url);
+            var internalLink = url.StartsWith('/') && !decoded.StartsWith("//") && !decoded.Contains('\\')
+                && !decoded.Any(char.IsControl);
+            if (!internalLink && (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme is not ("https" or "http")))
                 link.Url = "#";
         }
         foreach (var link in document.Descendants<AutolinkInline>())

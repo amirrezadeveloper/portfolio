@@ -1,5 +1,7 @@
 :root{color-scheme:dark;--bg:#08111a;--surface:#0d1a25;--surface-2:#10202d;--line:#243644;--text:#f0f5f5;--muted:#a4b7bf;--soft:#718c98;--accent:#8de1ce;--accent-dark:#14392f;--container:1180px;--radius:18px}
 @font-face{font-family:Vazirmatn;src:url('/fonts/Vazirmatn-variable.woff2') format('woff2');font-style:normal;font-weight:100 900;font-display:swap}
+@font-face{font-family:Inter;src:url('/fonts/Inter-latin-variable.woff2') format('woff2');font-style:normal;font-weight:100 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+.breadcrumbs{margin-bottom:24px;color:var(--soft);font-size:12px}.breadcrumbs ol{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0}.breadcrumbs li+li::before{content:'/';margin-inline-end:8px}.breadcrumbs a,.blog-meta a{color:var(--accent);text-decoration:none}.breadcrumbs li[aria-current]{overflow-wrap:anywhere}.article-translation{color:var(--accent);font-size:14px;text-decoration:none}.related-posts{border-top:1px solid var(--line);margin-top:44px;padding-top:32px}.related-posts>h2{font-size:26px;margin-bottom:24px}.blog-card h3{font-size:23px;line-height:1.4}.blog-card h3 a{text-decoration:none}.writing-link{margin-top:24px}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:92px}
 body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.65 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-x:hidden}

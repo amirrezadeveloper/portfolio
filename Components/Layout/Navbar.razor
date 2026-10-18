@@ -1,4 +1,5 @@
 @inject NavigationManager Navigation
+@inject PublishedPostCatalog Catalog
 
 <header class="site-header" id="site-header">
     <nav class="nav-shell container" aria-label="@(IsPersian ? "ناوبری اصلی" : "Main navigation")">
@@ -28,6 +29,21 @@
 @code {
     private string CurrentPath => new Uri(Navigation.Uri).AbsolutePath;
     private bool IsPersian => CurrentPath.Equals("/fa", StringComparison.OrdinalIgnoreCase) || CurrentPath.StartsWith("/fa/", StringComparison.OrdinalIgnoreCase);
-    private string LanguageHref => CurrentPath.Contains("/blog", StringComparison.OrdinalIgnoreCase) ? (IsPersian ? "/blog" : "/fa/blog") : (IsPersian ? "/" : "/fa");
+    private string? ArticleTranslationUrl;
+    private string LanguageHref => ArticleTranslationUrl ?? (CurrentPath.Contains("/blog", StringComparison.OrdinalIgnoreCase) ? (IsPersian ? "/blog" : "/fa/blog") : (IsPersian ? "/" : "/fa"));
     private string SectionHref(string section) => $"{(IsPersian ? "/fa" : "/")}#{section}";
+    protected override async Task OnParametersSetAsync()
+    {
+        ArticleTranslationUrl = null;
+        var prefix = IsPersian ? "/fa/blog/" : "/blog/";
+        if (!CurrentPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return;
+        var slug = Uri.UnescapeDataString(CurrentPath[prefix.Length..]);
+        try
+        {
+            var posts = await Catalog.GetAsync();
+            if (posts.Any(p => p.Slug == slug && p.Language == (IsPersian ? "fa" : "en")))
+                ArticleTranslationUrl = posts.FirstOrDefault(p => p.Slug == slug && p.Language == (IsPersian ? "en" : "fa"))?.Url;
+        }
+        catch (Exception e) when (e is BlogApiException or HttpRequestException or TaskCanceledException) { }
+    }
 }

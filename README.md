@@ -30,7 +30,7 @@ The enterprise project cards intentionally do not link to a generic GitHub profi
 
 The connected Supabase project is `portfolio-blog` (`ikcepreljlqgzbvudotr`). `appsettings.json` contains its **public publishable key**, never a secret or service-role key. Override with `Supabase__Url` and `Supabase__PublishableKey` to use another project. Auth uses the project's REST API. CRUD sends the signed-in user's token so database RLS remains authoritative. The `public.is_blog_admin()` RPC uses invoker permissions to check the private admin membership table. Removing membership rejects an existing site session on its next admin request.
 
-Sessions expire with the Supabase access token, capped at one hour; sign in again after expiry. Tokens are stored only inside an encrypted, HttpOnly authentication cookie. Forms use ASP.NET antiforgery validation. Raw HTML and non-HTTP(S) Markdown links are disabled.
+Sessions expire with the Supabase access token, capped at one hour; sign in again after expiry. Tokens are stored only inside an encrypted, HttpOnly authentication cookie. Forms use ASP.NET antiforgery validation. Raw HTML is disabled. Markdown supports HTTP(S) and safe root-relative links; executable and protocol-relative URLs are disabled.
 
 For local use, run `dotnet run` (the launch profile enables Development). Local Data Protection keys are stored in ignored `.local/keys`. Production cookies require HTTPS.
 
@@ -39,6 +39,16 @@ On Vercel, `Dockerfile.vercel` generates a private Data Protection key ring once
 For sessions that must also survive image rebuilds, mount a protected key directory shared between deployments and replicas, or configure another shared Data Protection store. Override `DataProtection__KeyPath` accordingly, and only set `DataProtection__ReadOnlyKeys=true` when an external primary owns key creation/rotation. Do not rely on an instance-local writable directory in a scaled deployment.
 
 Supabase setup applied three remote migrations: `create_portfolio_blog`, `streamline_blog_post_policies`, and `add_blog_admin_check`. The already applied SQL is saved for reference in `docs/supabase-blog.sql`; do not rerun it on this project. Keep public signups and anonymous sign-ins disabled in Authentication → Sign In / Providers. Image upload is not included; Markdown can display an existing public HTTP(S) image URL. No AI or automation service is required.
+
+## Search and article discovery
+
+`Seo__SiteUrl` is the trusted canonical origin, defaulting to `https://www.amirrezaghahremani.ir` (the live domain redirects to `www`). Set it explicitly when hosting another site. Canonicals, social URLs, robots and the sitemap use this configuration rather than the incoming Host header. Optionally set `Seo__GoogleSiteVerification` to the public HTML verification value supplied by Search Console; leave it empty when DNS verification is already in place.
+
+`/sitemap.xml` reads published metadata from Supabase in batches, excludes drafts, archives and future publications, and uses actual article modification dates. An upstream failure returns 503 with Retry-After rather than an incomplete success response. Translation links pair published `fa` and `en` posts with the **same slug**. Use that slug for both translations in the editor. A missing translation is never advertised as an alternate. Article pages include author and date information, BlogPosting/BreadcrumbList JSON-LD, contextual links and same-language related articles. Paginated lists use their own canonical URL; nonexistent pages return 404.
+
+Public HTML supports Brotli/gzip compression. CSS and JavaScript URLs carry content versions. Inter Latin and Vazirmatn are served locally with `font-display: swap`; only the relevant font is preloaded. The Inter license is included in `wwwroot/fonts/Inter-OFL.txt`. The portrait used in social cards is explicitly described as the author, not an illustration of the article.
+
+See [the SEO content and measurement plan](docs/seo-content-plan.md) for Search Console follow-up and upcoming article topics. Search Console registration is already complete; sitemap submission and account reports still need to be checked in that account.
 
 ## Verification
 

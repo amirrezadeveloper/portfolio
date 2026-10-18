@@ -366,3 +366,4 @@ FodyWeavers.xsd
 .local/
 .env*
 appsettings.Local.json
+output/playwright/

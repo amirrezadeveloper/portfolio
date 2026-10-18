@@ -1,5 +1,7 @@
 ﻿<!DOCTYPE html>
 @inject NavigationManager Navigation
+@inject Microsoft.Extensions.Options.IOptions<SeoOptions> Seo
+@inject Microsoft.AspNetCore.Mvc.ViewFeatures.IFileVersionProvider AssetVersions
 
 <html lang="@(IsPersian ? "fa" : "en")" dir="@(IsPersian ? "rtl" : "ltr")">
 
@@ -8,19 +10,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#08111a" />
     <base href="/" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="preload" href="/fonts/Vazirmatn-variable.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="app.css" />
+    @if (IsPersian)
+    {
+        <link rel="preload" href="/fonts/Vazirmatn-variable.woff2" as="font" type="font/woff2" crossorigin />
+    }
+    else
+    {
+        <link rel="preload" href="/fonts/Inter-latin-variable.woff2" as="font" type="font/woff2" crossorigin />
+    }
+    <link rel="stylesheet" href="@AssetVersions.AddFileVersionToPath("", "/app.css")" />
     <link rel="icon" type="image/png" href="/favicon-64.png" sizes="64x64" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    @if (!string.IsNullOrWhiteSpace(Seo.Value.GoogleSiteVerification))
+    {
+        <meta name="google-site-verification" content="@Seo.Value.GoogleSiteVerification" />
+    }
     <HeadOutlet />
 </head>
 
 <body class="@(IsPersian ? "persian" : null)">
     <Routes />
-    <script src="animations.js"></script>
+    <script src="@AssetVersions.AddFileVersionToPath("", "/animations.js")" defer></script>
 </body>
 
 </html>
