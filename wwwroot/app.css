@@ -37,7 +37,34 @@ img{max-width:100%;display:block}a{color:inherit}button{font:inherit}h1,h2,h3,p{
 .language-switch{padding:8px 10px;border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:12px;font-weight:700;text-decoration:none;transition:border-color .2s,color .2s,background .2s}.language-switch:hover{border-color:var(--accent);background:rgba(141,225,206,.06);color:var(--accent)}
 
 /* Reveal is progressive: content stays visible if scripts are unavailable. */
-.js-enabled .reveal{opacity:0;transform:translateY(17px);transition:opacity .55s ease,transform .55s ease}.js-enabled .reveal.is-visible{opacity:1;transform:none}
+.js-enabled .reveal{opacity:0;translate:0 17px;transition:opacity .55s ease var(--reveal-delay,0ms),translate .55s cubic-bezier(.22,1,.36,1) var(--reveal-delay,0ms),transform .25s,border-color .25s,box-shadow .25s}.js-enabled .reveal.is-visible{opacity:1;translate:0 0}
+
+/* A short introduction, with readable content even when JavaScript is absent. */
+.motion-enabled .hero-copy>*{animation:hero-arrive .52s cubic-bezier(.22,1,.36,1) backwards}
+.motion-enabled .hero-copy>:nth-child(2){animation-delay:80ms}
+.motion-enabled .hero-copy>:nth-child(3){animation-delay:160ms}
+.motion-enabled .hero-copy>:nth-child(4){animation-delay:240ms}
+.motion-enabled .hero-copy>:nth-child(5){animation-delay:320ms}
+.motion-enabled .hero-visual{animation:hero-arrive .65s cubic-bezier(.22,1,.36,1) 120ms backwards}
+@keyframes hero-arrive{from{opacity:.25;translate:0 12px}to{opacity:1;translate:0 0}}
+
+/* A request travels through the existing architecture diagram once. */
+.request-flow{gap:0;background:radial-gradient(ellipse at 50% 10%,rgba(141,225,206,.06),transparent 75%),rgba(5,20,26,.26)}
+.request-flow>.flow-track{position:relative;display:block;flex:none;width:1px;height:24px;padding:0;border:0;border-radius:0;background:rgba(141,225,206,.28)}
+.request-flow>.flow-services{position:relative;gap:7px;width:100%}
+.flow-packet{position:absolute;top:0;left:-2px;width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(141,225,206,.65);opacity:0}
+.flow-node{position:relative;isolation:isolate}
+.flow-node::after{content:"";position:absolute;inset:-1px;z-index:-1;border:1px solid var(--accent);border-radius:inherit;background:rgba(141,225,206,.12);opacity:0;pointer-events:none}
+.request-flow.is-flowing .flow-node::after{animation:flow-light .7s ease both paused}
+.request-flow.is-flowing .flow-gateway::after{animation-delay:.35s}
+.request-flow.is-flowing .flow-services .flow-node::after{animation-delay:1s}
+.request-flow.is-flowing .flow-events::after{animation-delay:1.8s}
+.request-flow.is-flowing .flow-packet{animation:flow-travel .75s cubic-bezier(.4,0,.2,1) both paused}
+.request-flow.is-flowing .flow-ingress .flow-packet{animation-delay:.55s}
+.request-flow.is-flowing .flow-egress .flow-packet{animation-delay:1.35s}
+.request-flow.is-in-view .flow-node::after,.request-flow.is-in-view .flow-packet{animation-play-state:running}
+@keyframes flow-travel{0%{opacity:0;transform:translateY(-2px)}20%,75%{opacity:1}100%{opacity:0;transform:translateY(22px)}}
+@keyframes flow-light{0%,100%{opacity:0}40%,60%{opacity:1}}
 @media(max-width:1080px){.nav-panel{gap:14px}.nav-link{padding-inline:7px}.brand-name{display:none}.hero-grid{gap:45px}.experience-item{grid-template-columns:180px 1fr}}
 @media(max-width:850px){.container{width:min(calc(100% - 40px),var(--container))}.nav-shell{min-height:70px}.brand-name{display:inline}.menu-toggle{display:flex;flex-direction:column;justify-content:center;gap:5px;width:42px;height:42px;padding:9px;border:1px solid var(--line);border-radius:9px;background:transparent;color:var(--text);cursor:pointer}.menu-toggle span{width:100%;height:2px;border-radius:2px;background:currentColor;transition:transform .2s,opacity .2s}.menu-toggle[aria-expanded=true] span:nth-child(1){transform:translateY(7px) rotate(45deg)}.menu-toggle[aria-expanded=true] span:nth-child(2){opacity:0}.menu-toggle[aria-expanded=true] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}.nav-panel{display:none;position:absolute;top:70px;left:0;right:0;flex-direction:column;align-items:stretch;gap:10px;padding:17px 20px 22px;border-bottom:1px solid var(--line);background:#0a1720;box-shadow:0 18px 30px rgba(0,0,0,.25)}.nav-panel.is-open{display:flex}.nav-links{display:flex;flex-direction:column;align-items:stretch;gap:1px}.nav-link{padding:12px 10px}.nav-link::after{display:none}.nav-link.active{border-radius:7px;background:rgba(141,225,206,.08);color:var(--accent)}.nav-contact{align-self:stretch}.hero{padding:75px 0 100px}.hero-grid{grid-template-columns:1fr}.hero-copy{max-width:700px}.hero-visual{max-width:390px;margin-top:25px}.about-grid,.contact-layout{grid-template-columns:1fr;gap:32px}.section{padding:85px 0}.section-heading{align-items:start;flex-direction:column;gap:15px}.section-heading>p{max-width:600px}.contact-section{padding:90px 0}}
 @media(max-width:650px){.brand-name{font-size:12px}.hero h1{font-size:clamp(43px,10vw,60px)}.hero-lead{font-size:15px}.hero-meta{margin-top:40px}.portrait-caption{left:-8px;bottom:-20px}.about-highlights{grid-template-columns:1fr;gap:20px}.experience-item{grid-template-columns:1fr;gap:10px;padding:29px 0}.experience-period{padding:0}.projects-grid,.skills-grid,.education-grid{grid-template-columns:1fr}.project-featured{grid-column:auto}.project-content{grid-template-columns:1fr;gap:20px}.project-visual{min-height:140px}.project-card{min-height:0}.project-card>.tag-list{margin-top:15px}.education-primary h3{margin-top:35px}.education-note{margin-top:30px}.education-courses li{flex-direction:column;gap:4px}.education-courses li span{max-width:none;text-align:left}.contact-links a{grid-template-columns:57px 1fr 12px;gap:7px}.contact-links strong{font-size:11px}.footer-inner{flex-direction:column}}
@@ -48,7 +75,7 @@ img{max-width:100%;display:block}a{color:inherit}button{font:inherit}h1,h2,h3,p{
 body.persian{font-family:Vazirmatn,Inter,"Segoe UI",sans-serif;text-align:right;font-size:15px;line-height:1.9}.persian h1,.persian h2,.persian h3{letter-spacing:0;line-height:1.45}.persian .eyebrow{letter-spacing:.08em}.persian .eyebrow-line{order:2}.persian .hero-meta,.persian .experience-title{justify-content:flex-start}.persian .detail-list{padding-left:0;padding-right:18px}.persian .education-courses li span{text-align:left}.persian .contact-links a{padding-left:0;padding-right:0}.persian .contact-links a:hover{padding-left:0;padding-right:7px}.persian .project-type{text-align:left}.persian .portrait-caption{left:auto;right:-16px}.persian .visual-orbit{left:-18px;right:auto}.persian .skip-link{left:auto;right:20px}.persian .section-kicker,.persian .card-label,.persian .experience-period,.persian .skill-index{font-weight:800}.persian .btn,.persian .nav-link,.persian .nav-contact,.persian .language-switch{font-family:Vazirmatn,Inter,"Segoe UI",sans-serif}.persian .hero-lead,.persian .about-body>p,.persian .experience-detail>p,.persian .project-card p,.persian .contact-layout p{line-height:2}
 @media(max-width:850px){.nav-panel .language-switch{align-self:flex-start}.persian .nav-panel .language-switch{align-self:flex-end}.persian .portrait-caption{right:-8px;left:auto}.persian .education-courses li span{text-align:right}}
 @media(max-width:760px){.projects-grid,.skills-grid{grid-template-columns:1fr}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}.js-enabled .reveal{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.js-enabled .reveal{opacity:1;translate:none}.flow-packet,.flow-node::after{display:none}}
 
 /* Keep the portrait supportive of the introduction rather than dominant. */
 .hero-visual{max-width:365px}

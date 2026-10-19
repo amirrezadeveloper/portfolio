@@ -11,7 +11,13 @@
                 <div class="project-topline"><span class="project-number">@(IsPersian ? "۰۱" : "01")</span><span class="project-type">@(IsPersian ? "خسارت خودرو · بیمه نوین" : "FEATURED · INSURANCE")</span></div>
                 <div class="project-content">
                     <div><h3>@(IsPersian ? "سامانهٔ رسیدگی به خسارت خودرو" : "Motor Insurance Claims Microservices Platform")</h3><p>@(IsPersian ? "این سامانه را از پایه با معماری میکروسرویس‌ها طراحی و توسعه داده‌ام. مراحل رسیدگی به خسارت، ارتباط سرویس‌ها، اتصال به سامانه‌های دیگر، احراز هویت و پایش عملکرد از بخش‌های اصلی کار بوده‌اند." : "Designed and developed an enterprise claims platform from scratch. The work spans claims workflows, service communication, external integrations, authentication, logging, monitoring, and infrastructure.")</p></div>
-                    <div class="project-visual" aria-hidden="true"><span>@(IsPersian ? "درگاه API" : "API GATEWAY")</span><i></i><div><b>@(IsPersian ? "خسارت" : "Claims")</b><b>@(IsPersian ? "احراز هویت" : "Identity")</b><b>@(IsPersian ? "سرویس‌های بیرونی" : "External APIs")</b></div><i></i><span>@(IsPersian ? "رویدادها · داده‌ها · پایش" : "EVENTS · DATA · OBSERVABILITY")</span></div>
+                    <div class="project-visual request-flow" aria-hidden="true">
+                        <span class="flow-node flow-gateway">@(IsPersian ? "درگاه API" : "API GATEWAY")</span>
+                        <div class="flow-track flow-ingress"><span class="flow-packet"></span></div>
+                        <div class="flow-services"><b class="flow-node">@(IsPersian ? "خسارت" : "Claims")</b><b class="flow-node">@(IsPersian ? "احراز هویت" : "Identity")</b><b class="flow-node">@(IsPersian ? "سرویس‌های بیرونی" : "External APIs")</b></div>
+                        <div class="flow-track flow-egress"><span class="flow-packet"></span></div>
+                        <span class="flow-node flow-events">@(IsPersian ? "رویدادها · داده‌ها · پایش" : "EVENTS · DATA · OBSERVABILITY")</span>
+                    </div>
                 </div>
                 <div class="tag-list"><span>.NET</span><span>Microservices</span><span>Clean Architecture</span><span>CQRS</span><span>RabbitMQ</span><span>Docker</span><span>Kong</span></div>
             </article>

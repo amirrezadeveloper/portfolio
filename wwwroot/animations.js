@@ -36,9 +36,9 @@
             if (window.innerWidth > 850) closeMenu();
         }
 
-        let ticking = false;
+        let navigationFrame = null;
         function updateNavigation() {
-            ticking = false;
+            navigationFrame = null;
             header.classList.toggle('is-scrolled', window.scrollY > 12);
             const marker = window.scrollY + header.offsetHeight + Math.min(window.innerHeight * .28, 190);
             let current = sections[0]?.id || 'home';
@@ -58,36 +58,73 @@
         }
 
         function onScroll() {
-            if (!ticking) {
-                ticking = true;
-                window.requestAnimationFrame(updateNavigation);
+            if (navigationFrame === null) {
+                navigationFrame = window.requestAnimationFrame(updateNavigation);
             }
         }
+
+        function onLinkClick() { closeMenu(); }
 
         toggle.addEventListener('click', onToggle);
         document.addEventListener('click', onDocumentClick);
         document.addEventListener('keydown', onKeydown);
         window.addEventListener('resize', onResize);
         window.addEventListener('scroll', onScroll, { passive: true });
-        links.forEach(link => link.addEventListener('click', () => closeMenu()));
+        links.forEach(link => link.addEventListener('click', onLinkClick));
         updateNavigation();
 
         let revealObserver = null;
-        const reveals = document.querySelectorAll('.reveal');
-        if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            document.documentElement.classList.add('js-enabled');
+        let flowObserver = null;
+        const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const reveals = [...document.querySelectorAll('.reveal')];
+        const flows = [...document.querySelectorAll('.request-flow')];
+
+        function configureMotion() {
+            revealObserver?.disconnect();
+            flowObserver?.disconnect();
+            document.documentElement.classList.remove('js-enabled');
+            document.documentElement.classList.toggle('motion-enabled', !motionPreference.matches);
+
+            if (motionPreference.matches || !('IntersectionObserver' in window)) {
+                reveals.forEach(el => el.classList.add('is-visible'));
+                flows.forEach(el => el.classList.remove('is-flowing', 'is-in-view'));
+                return;
+            }
+
             revealObserver = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('is-visible');
-                        revealObserver.unobserve(entry.target);
+                // Stagger only siblings arriving together, so isolated cards never wait.
+                const groupOffsets = new Map();
+                const arriving = new Set(entries.filter(entry => entry.isIntersecting).map(entry => entry.target));
+                reveals.forEach(el => {
+                    if (!arriving.has(el)) return;
+                    const group = el.parentElement;
+                    let delay = 0;
+                    if (group.matches('.projects-grid, .skills-grid')) {
+                        const index = groupOffsets.get(group) || 0;
+                        delay = Math.min(index, 3) * 75;
+                        groupOffsets.set(group, index + 1);
                     }
+                    el.style.setProperty('--reveal-delay', delay + 'ms');
+                    el.classList.add('is-visible');
+                    revealObserver.unobserve(el);
                 });
             }, { rootMargin: '0px 0px -45px 0px', threshold: .05 });
-            reveals.forEach(el => revealObserver.observe(el));
-        } else {
-            document.documentElement.classList.remove('js-enabled');
+
+            flowObserver = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    // One finite sequence; pause it while the diagram is off screen.
+                    entry.target.classList.toggle('is-in-view', entry.isIntersecting);
+                    if (entry.isIntersecting) entry.target.classList.add('is-flowing');
+                });
+            }, { threshold: .35 });
+
+            document.documentElement.classList.add('js-enabled');
+            reveals.filter(el => !el.classList.contains('is-visible')).forEach(el => revealObserver.observe(el));
+            flows.forEach(el => flowObserver.observe(el));
         }
+
+        configureMotion();
+        motionPreference.addEventListener('change', configureMotion);
 
         cleanup = () => {
             toggle.removeEventListener('click', onToggle);
@@ -95,7 +132,11 @@
             document.removeEventListener('keydown', onKeydown);
             window.removeEventListener('resize', onResize);
             window.removeEventListener('scroll', onScroll);
+            links.forEach(link => link.removeEventListener('click', onLinkClick));
+            if (navigationFrame !== null) window.cancelAnimationFrame(navigationFrame);
             revealObserver?.disconnect();
+            flowObserver?.disconnect();
+            motionPreference.removeEventListener('change', configureMotion);
         };
     }
 
