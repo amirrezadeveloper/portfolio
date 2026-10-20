@@ -7,7 +7,7 @@
 
 <PageTitle>@(IsPersian ? "بلاگ | امیررضا قهرمانی" : "Blog | Amirreza Ghahremani")</PageTitle>
 <HeadContent>
-    <meta name="description" content="@(IsPersian ? "مقاله‌های امیررضا قهرمانی دربارهٔ دات‌نت، توسعهٔ بک‌اند، CQRS، Saga و معماری میکروسرویس؛ کاربردها، محدودیت‌ها و تصمیم‌های طراحی." : "Articles by Amirreza Ghahremani on .NET, backend development, CQRS, sagas, and microservice architecture: practical uses, trade-offs, and design decisions.")" />
+    <meta name="description" content="@(IsPersian ? "نوشته‌های امیررضا قهرمانی دربارهٔ برنامه‌نویسی، ابزارهای توسعه و تجربه‌های کار روی پروژه‌ها." : "Notes by Amirreza Ghahremani on programming, development tools, and experiences from projects.")" />
     <link rel="canonical" href="@Site.Url(SiteMetadata.BlogPath(IsPersian ? "fa" : "en", PageNumber))" />
     @if (PageNumber == 1)
     {
@@ -16,16 +16,16 @@
     @if (PageNumber > 1 && Posts.Count == 0 && !Failed) { <meta name="robots" content="noindex,follow" /> }
 </HeadContent>
 <section class="blog-page container">
-    <div class="blog-heading"><span class="section-kicker">@(IsPersian ? "یادداشت‌ها و تجربه‌ها" : "NOTES & EXPERIENCES")</span>
-    <h1>@(IsPersian ? "پشت صحنهٔ کد" : "Behind the code")</h1>
-    <p>@(IsPersian ? "از تجربه‌های کار با دات‌نت و بک‌اند می‌نویسم؛ از مسئله‌هایی که با آن‌ها روبه‌رو می‌شوم و راه‌حل‌هایی که پیدا می‌کنم." : ".NET, backend engineering, and things I learn along the way.")</p></div>
+    <div class="blog-heading"><span class="section-kicker">@(IsPersian ? "بلاگ" : "BLOG")</span>
+    <h1>@(IsPersian ? "یادداشت‌ها و تجربه‌ها" : "Notes & experiences")</h1>
+    <p>@(IsPersian ? "اینجا دربارهٔ برنامه‌نویسی و چیزهایی که در کار یاد می‌گیرم می‌نویسم؛ از یک نکتهٔ کوچک در کد تا تجربهٔ استفاده از یک ابزار یا تصمیمی در پروژه." : "I write about programming and what I learn at work, from small details in code to tools I've used and decisions made on a project.")</p></div>
     @if (Failed)
     {
         <div class="blog-empty" role="alert"><h2>@(IsPersian ? "مقاله‌ها بارگذاری نشدند" : "Articles are temporarily unavailable")</h2><p>@(IsPersian ? "لطفاً کمی بعد دوباره سر بزنید." : "Please try again shortly.")</p><a href="@BasePath" class="btn btn-ghost">@(IsPersian ? "تلاش دوباره" : "Try again")</a></div>
     }
     else if (Posts.Count == 0)
     {
-        <div class="blog-empty"><span class="blog-empty-mark" aria-hidden="true">{ }</span><h2>@(IsPersian ? "هنوز مقاله‌ای منتشر نکرده‌ام" : "The first note is on its way")</h2><p>@(IsPersian ? "این‌جا قرار است دربارهٔ تجربه‌های کاری و آموخته‌های فنی‌ام بنویسم." : "I'll share my technical notes and experiences here soon.")</p></div>
+        <div class="blog-empty"><span class="blog-empty-mark" aria-hidden="true">{ }</span><h2>@(IsPersian ? "هنوز نوشته‌ای منتشر نکرده‌ام" : "No posts yet")</h2><p>@(IsPersian ? "نوشته‌های جدید همین‌جا نمایش داده می‌شوند." : "New posts will appear here.")</p></div>
     }
     else
     {

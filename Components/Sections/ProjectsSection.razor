@@ -3,41 +3,41 @@
 <section id="projects" class="section section-muted" aria-labelledby="projects-title">
     <div class="container">
         <div class="section-heading reveal">
-            <div><span class="section-kicker">@(IsPersian ? "۰۳ / پروژه‌های منتخب" : "03 / SELECTED WORK")</span><h2 id="projects-title">@(IsPersian ? "پروژه‌ها و نمونه‌کارها" : "Projects & platforms")</h2></div>
-            <p>@(IsPersian ? "چند نمونه از پروژه‌هایی که در توسعه‌شان نقش داشته‌ام؛ از سامانه‌های بیمه‌ای تا فروشگاه‌های آنلاین. کد پروژه‌های سازمانی به‌صورت عمومی منتشر نشده است." : "A selection of work described in my résumé. Enterprise project source code is not publicly linked.")</p>
+            <div><span class="section-kicker">@(IsPersian ? "۰۳ / پروژه‌ها" : "03 / PROJECTS")</span><h2 id="projects-title">@(IsPersian ? "چند نمونه از کارهایم" : "Some of my work")</h2></div>
+            <p>@(IsPersian ? "در هر پروژه روی چه بخش‌هایی کار کرده‌ام و از چه ابزارهایی استفاده شده است. سورس پروژه‌های سازمانی عمومی نیست." : "What I worked on in each project and the tools involved. Source code for company projects isn't public.")</p>
         </div>
         <div class="projects-grid">
             <article class="project-card project-featured reveal">
-                <div class="project-topline"><span class="project-number">@(IsPersian ? "۰۱" : "01")</span><span class="project-type">@(IsPersian ? "خسارت خودرو · بیمه نوین" : "FEATURED · INSURANCE")</span></div>
+                <div class="project-topline"><span class="project-number">@(IsPersian ? "۰۱" : "01")</span><span class="project-type">@(IsPersian ? "پروژهٔ منتخب" : "FEATURED PROJECT")</span></div>
                 <div class="project-content">
-                    <div><h3>@(IsPersian ? "سامانهٔ رسیدگی به خسارت خودرو" : "Motor Insurance Claims Microservices Platform")</h3><p>@(IsPersian ? "این سامانه را از پایه با معماری میکروسرویس‌ها طراحی و توسعه داده‌ام. مراحل رسیدگی به خسارت، ارتباط سرویس‌ها، اتصال به سامانه‌های دیگر، احراز هویت و پایش عملکرد از بخش‌های اصلی کار بوده‌اند." : "Designed and developed an enterprise claims platform from scratch. The work spans claims workflows, service communication, external integrations, authentication, logging, monitoring, and infrastructure.")</p></div>
+                    <div><h3>@(IsPersian ? "سامانهٔ خسارت خودرو" : "Motor insurance claims")</h3><p>@(IsPersian ? "این پروژه را از صفر با معماری میکروسرویس طراحی و پیاده‌سازی کردم. منطق رسیدگی به خسارت، ارتباط بین سرویس‌ها و اتصال به APIهای بیرونی از بخش‌هایی بود که روی آن‌ها کار کردم." : "I designed and built this project from scratch using a microservice architecture. My work included claims processing, communication between services, and external API integrations.")</p></div>
                     <div class="project-visual request-flow" aria-hidden="true">
-                        <span class="flow-node flow-gateway">@(IsPersian ? "درگاه API" : "API GATEWAY")</span>
+                        <span class="flow-node flow-gateway">API Gateway</span>
                         <div class="flow-track flow-ingress"><span class="flow-packet"></span></div>
                         <div class="flow-services"><b class="flow-node">@(IsPersian ? "خسارت" : "Claims")</b><b class="flow-node">@(IsPersian ? "احراز هویت" : "Identity")</b><b class="flow-node">@(IsPersian ? "سرویس‌های بیرونی" : "External APIs")</b></div>
                         <div class="flow-track flow-egress"><span class="flow-packet"></span></div>
-                        <span class="flow-node flow-events">@(IsPersian ? "رویدادها · داده‌ها · پایش" : "EVENTS · DATA · OBSERVABILITY")</span>
+                        <span class="flow-node flow-events">@(IsPersian ? "پیام‌ها · دیتابیس · مانیتورینگ" : "MESSAGING · DATABASE · MONITORING")</span>
                     </div>
                 </div>
                 <div class="tag-list"><span>.NET</span><span>Microservices</span><span>Clean Architecture</span><span>CQRS</span><span>RabbitMQ</span><span>Docker</span><span>Kong</span></div>
             </article>
             <article class="project-card reveal">
                 <div class="project-topline"><span class="project-number">@(IsPersian ? "۰۲" : "02")</span><span class="project-type">@(IsPersian ? "صدور بیمه‌نامه" : "POLICY ISSUANCE")</span></div>
-                <h3>@(IsPersian ? "سامانهٔ صدور بیمهٔ آتش‌سوزی تجاری" : "Commercial Fire Insurance Issuance Platform")</h3>
-                <p>@(IsPersian ? "توسعهٔ سرویس‌های بک‌اند این سامانه، از تعریف محصولات و طرح‌های بیمه‌ای تا پیاده‌سازی قواعد صدور بیمه‌نامه و طراحی پایگاه داده." : "Backend services for commercial fire insurance products and policy issuance, including business rules, product plans, policy workflows, and database structures.")</p>
+                <h3>@(IsPersian ? "صدور بیمهٔ آتش‌سوزی تجاری" : "Commercial fire insurance")</h3>
+                <p>@(IsPersian ? "روی بک‌اند این سامانه کار کردم؛ از تعریف محصول و طرح بیمه تا پیاده‌سازی قوانین صدور بیمه‌نامه و طراحی دیتابیس." : "I worked on the backend for defining insurance products and plans, issuing policies, and storing their data.")</p>
                 <div class="tag-list"><span>ASP.NET Core</span><span>EF Core</span><span>SQL Server</span><span>REST API</span></div>
             </article>
             <article class="project-card reveal">
                 <div class="project-topline"><span class="project-number">@(IsPersian ? "۰۳" : "03")</span><span class="project-type">@(IsPersian ? "پورتال‌های سازمانی" : "ENTERPRISE PORTALS")</span></div>
                 <h3>@(IsPersian ? "پورتال‌های سازمانی بیمه" : "Insurance Enterprise Portals")</h3>
-                <p>@(IsPersian ? "در توسعهٔ پورتال‌های شبکهٔ فروش، فروش الکترونیکی، بیمهٔ زندگی، بیمهٔ مجتمع‌های مسکونی و نظارت بر نمایندگان مشارکت داشته‌ام. پیاده‌سازی سرویس‌های بک‌اند، کار با پایگاه داده و پشتیبانی این سامانه‌ها بخشی از مسئولیت من بوده است." : "Sales network, electronic sales, life insurance, residential complex insurance, and representative monitoring portals. Delivered workflows, backend services, database work, and production support.")</p>
+                <p>@(IsPersian ? "در توسعه و پشتیبانی چند پورتال، از جمله شبکهٔ فروش، بیمهٔ زندگی و نظارت بر نمایندگان، مشارکت داشتم. کار من بیشتر روی بک‌اند و دیتابیس بود." : "I helped develop and support portals for the sales network, life insurance, and representative monitoring. My work focused on the backend and databases.")</p>
                 <div class="tag-list"><span>.NET</span><span>ASP.NET MVC</span><span>Angular</span><span>SQL Server</span></div>
             </article>
             <article class="project-card reveal">
                 <div class="project-topline"><span class="project-number">@(IsPersian ? "۰۴" : "04")</span><span class="project-type">@(IsPersian ? "فروش آنلاین" : "E-COMMERCE")</span></div>
-                <h3>@(IsPersian ? "فروشگاه‌های آنلاین" : "E-commerce Platforms")</h3>
-                <p>@(IsPersian ? "توسعهٔ امکانات نمایش محصولات، سبد خرید، ثبت سفارش و مدیریت مشتریان در فروشگاه قطعات موبایل یدک‌فون و یک سامانهٔ فروش مبتنی بر ASP.NET Core." : "Built commerce features for product catalogs, carts, orders, and customer management, including the YadakPhone mobile-parts website and an ASP.NET Core commerce platform.")</p>
-                <div class="tag-list"><span>ASP.NET Core</span><span>Node.js</span><span>MongoDB</span><span>SQL Server</span></div>
+                <h3>@(IsPersian ? "فروشگاه قطعات موبایل یدک‌فون" : "YadakPhone mobile-parts store")</h3>
+                <p>@(IsPersian ? "این فروشگاه با Node.js و MongoDB ساخته شد. پیاده‌سازی بخش‌های محصول، سبد خرید، سفارش‌ها و حساب کاربری را انجام دادم." : "Built with Node.js and MongoDB. I implemented the product catalog, shopping cart, orders, and customer accounts.")</p>
+                <div class="tag-list"><span>Node.js</span><span>MongoDB</span></div>
             </article>
         </div>
     </div>

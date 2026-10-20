@@ -47,7 +47,7 @@
             <section class="related-posts" aria-labelledby="related-title"><h2 id="related-title">@(IsPersian ? "مطالب مرتبط" : "Related articles")</h2>
             <div class="blog-grid">@foreach (var related in Related) { <article class="blog-card"><h3><a href="@related.Url">@related.Title</a></h3><p>@related.Excerpt</p><a class="blog-read" href="@related.Url">@(IsPersian ? "خواندن مقاله ←" : "Read article →")</a></article> }</div></section>
         }
-        <div class="article-contact"><p>@(IsPersian ? "اگر دربارهٔ این مطلب پرسشی دارید یا می‌خواهید دربارهٔ همکاری صحبت کنیم، پیام بدهید." : "Have a question or a project in mind?")</p><a class="btn btn-ghost" href="@(IsPersian ? "/fa#contact" : "/#contact")">@(IsPersian ? "تماس با من" : "Let's talk")</a></div>
+        <div class="article-contact"><p>@(IsPersian ? "دربارهٔ این نوشته سؤال یا تجربه‌ای دارید؟ خوشحال می‌شوم از شما بشنوم." : "Have a question or an experience to share about this post? I'd like to hear it.")</p><a class="btn btn-ghost" href="@(IsPersian ? "/fa#contact" : "/#contact")">@(IsPersian ? "تماس با من" : "Get in touch")</a></div>
     }
     else
     {
